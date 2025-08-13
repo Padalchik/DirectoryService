@@ -10,4 +10,9 @@
       <ProjectReference Include="..\DirectoryService.Contracts\DirectoryService.Contracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="CSharpFunctionalExtensions" Version="3.6.0" />
+      <PackageReference Include="TimeZoneConverter" Version="7.0.0" />
+    </ItemGroup>
+
 </Project>
