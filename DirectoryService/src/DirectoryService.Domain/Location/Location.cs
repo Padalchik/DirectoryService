@@ -19,7 +19,7 @@ public class Location
 
     public DateTime UpdatedAt { get; private set; }
 
-    private Location(LocationName name, Address address, Timezone timezone)
+    public Location(LocationName name, Address address, Timezone timezone)
     {
         Id = Guid.NewGuid();
         Name = name;
@@ -33,11 +33,5 @@ public class Location
     // EF C0RE
     private Location()
     {
-    }
-    
-    public static Result<Location> Create(LocationName name, Address address, Timezone timezone)
-    {
-        var location = new Location(name, address, timezone);
-        return Result.Success(location);
     }
 }

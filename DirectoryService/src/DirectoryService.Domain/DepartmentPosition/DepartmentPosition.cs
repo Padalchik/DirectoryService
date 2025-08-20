@@ -12,7 +12,7 @@ public class DepartmentPosition
 
     public DateTime CreatedAt { get; private set; }
 
-    private DepartmentPosition(Guid positionId, Guid departmentId)
+    public DepartmentPosition(Guid positionId, Guid departmentId)
     {
         Id = Guid.NewGuid();
         PositionId = positionId;
@@ -23,11 +23,5 @@ public class DepartmentPosition
     // EF C0RE
     private DepartmentPosition()
     {
-    }
-
-    public static Result<DepartmentPosition> Create(Guid idPosition, Guid departmentId)
-    {
-        var departmentPosition = new DepartmentPosition(idPosition, departmentId);
-        return Result.Success(departmentPosition);
     }
 }

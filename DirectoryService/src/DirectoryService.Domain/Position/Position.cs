@@ -17,7 +17,7 @@ public class Position
 
     public DateTime UpdatedAt { get; private set; }
 
-    private Position(Guid id, PositionName name, PositionDescription description)
+    public Position(Guid id, PositionName name, PositionDescription description)
     {
         Id = id;
         Name = name;
@@ -30,11 +30,5 @@ public class Position
     // EF C0RE
     private Position()
     {
-    }
-
-    public static Result<Position> Create(Guid id, PositionName name, PositionDescription description)
-    {
-        var department = new Position(id, name, description);
-        return Result.Success(department);
     }
 }
