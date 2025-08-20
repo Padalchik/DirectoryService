@@ -1,4 +1,7 @@
-﻿namespace DirectoryService.Domain.Position;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Department;
+
+namespace DirectoryService.Domain.Position;
 
 public class Position
 {
@@ -14,7 +17,7 @@ public class Position
 
     public DateTime UpdatedAt { get; private set; }
 
-    private Position(Guid id, PositionName name, PositionDescription description)
+    public Position(Guid id, PositionName name, PositionDescription description)
     {
         Id = id;
         Name = name;
@@ -22,5 +25,10 @@ public class Position
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    // EF C0RE
+    private Position()
+    {
     }
 }
