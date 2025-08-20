@@ -12,6 +12,10 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
 
         builder.HasKey(d => d.Id);
 
+        builder.Property(d => d.Id)
+            .IsRequired()
+            .HasColumnName("id");
+
         builder.ComplexProperty(l => l.Name, li =>
         {
             li.Property(d => d.Name)

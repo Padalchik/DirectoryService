@@ -58,7 +58,7 @@ namespace DirectoryService.Infrastructure.Migrations
                 name: "positions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -67,7 +67,7 @@ namespace DirectoryService.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_positions", x => x.Id);
+                    table.PrimaryKey("PK_positions", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
