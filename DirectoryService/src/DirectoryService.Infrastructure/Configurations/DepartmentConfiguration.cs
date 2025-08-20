@@ -12,9 +12,13 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 
         builder.HasKey(d => d.Id);
 
+        builder.Property(d => d.Id)
+            .IsRequired()
+            .HasColumnName("id");
+
         builder.HasOne(d => d.Parent)
             .WithMany(p => p.Children)
-            .HasForeignKey("parent");
+            .HasForeignKey(d => d.ParentId);
 
         builder.Property(d => d.ParentId)
             .IsRequired(false)
@@ -51,12 +55,18 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
         builder.Property(d => d.UpdatedAt)
             .HasColumnName("updated_at");
 
-        builder.Property(d => d.ChildrenCount)
-            .HasColumnName("children_count");
-        
-        //DepartmentLocation
-        //DepartmentPosition
+        builder.Ignore(d => d.ChildrenCount);
 
-        //builder.OwnsMany(q => q.Locations);
+        builder.HasMany(d => d.Locations)
+            .WithOne()
+            .HasForeignKey(dl => dl.DepartmentId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(d => d.Positions)
+            .WithOne()
+            .HasForeignKey(dl => dl.DepartmentId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

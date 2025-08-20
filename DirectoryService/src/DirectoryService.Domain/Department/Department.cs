@@ -7,7 +7,7 @@ public class Department
     private HashSet<DepartmentLocation.DepartmentLocation> _locations = [];
     private HashSet<DepartmentPosition.DepartmentPosition> _positions = [];
 
-    public Guid Id { get; private set; }
+    public Guid Id { get; }
 
     public DepartmentName Name { get; private set; }
 
@@ -26,7 +26,7 @@ public class Department
 
     public DateTime UpdatedAt { get; private set; }
 
-    public int ChildrenCount => _children.Count();
+    public int ChildrenCount => _children.Count;
 
     public IReadOnlySet<Department> Children => _children;
 
@@ -34,7 +34,7 @@ public class Department
 
     public IReadOnlySet<DepartmentPosition.DepartmentPosition> Positions => _positions;
 
-    private Department(DepartmentName name, DepartmentIdentifier identifier, Department? parent)
+    private Department(DepartmentName name, DepartmentIdentifier identifier, Department? parent = null)
     {
         Id = Guid.NewGuid();
         Name = name;
@@ -43,11 +43,12 @@ public class Department
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
 
-        if (parent != null)
-        {
-            ParentId = parent.Id;
-            SetParent(parent);
-        }
+        SetParent(parent);
+    }
+
+    // EF C0RE
+    private Department()
+    {
     }
 
     public static Result<Department> Create(DepartmentName name, DepartmentIdentifier identifier, Department? parent = null)

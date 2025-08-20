@@ -4,16 +4,30 @@ namespace DirectoryService.Domain.DepartmentLocation;
 
 public class DepartmentLocation
 {
-    public Guid IdLocation { get; }
+    public Guid Id { get; }
 
-    private DepartmentLocation(Guid idLocation)
+    public Guid DepartmentId { get; }
+
+    public Guid LocationId { get; }
+
+    public DateTime CreatedAt { get; private set; }
+
+    private DepartmentLocation(Guid locationId, Guid departmentId)
     {
-        IdLocation = idLocation;
+        Id = Guid.NewGuid();
+        DepartmentId = departmentId;
+        LocationId = locationId;
+        CreatedAt = DateTime.UtcNow;
     }
 
-    public static Result<DepartmentLocation> Create(Guid idLocation)
+    // EF C0RE
+    private DepartmentLocation()
     {
-        var departmentLocation = new DepartmentLocation(idLocation);
+    }
+
+    public static Result<DepartmentLocation> Create(Guid idLocation, Guid idDepartment)
+    {
+        var departmentLocation = new DepartmentLocation(idLocation, idDepartment);
         return Result.Success(departmentLocation);
     }
 }

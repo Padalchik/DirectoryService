@@ -30,6 +30,11 @@ public class Location
         UpdatedAt = DateTime.UtcNow;
     }
 
+    // EF C0RE
+    private Location()
+    {
+    }
+    
     public static Result<Location> Create(LocationName name, Address address, Timezone timezone)
     {
         var location = new Location(name, address, timezone);

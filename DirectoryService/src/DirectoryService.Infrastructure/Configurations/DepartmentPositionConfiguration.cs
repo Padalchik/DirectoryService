@@ -1,14 +1,14 @@
-﻿using DirectoryService.Domain.DepartmentLocation;
+﻿using DirectoryService.Domain.DepartmentPosition;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DirectoryService.Infrastructure.Configurations;
 
-public class DepartmentLocationConfiguration : IEntityTypeConfiguration<DepartmentLocation>
+public class DepartmentPositionConfiguration : IEntityTypeConfiguration<DepartmentPosition>
 {
-    public void Configure(EntityTypeBuilder<DepartmentLocation> builder)
+    public void Configure(EntityTypeBuilder<DepartmentPosition> builder)
     {
-        builder.ToTable("department_locations");
+        builder.ToTable("department_positions");
 
         builder.HasKey(x => x.Id);
 
@@ -20,8 +20,8 @@ public class DepartmentLocationConfiguration : IEntityTypeConfiguration<Departme
             .HasColumnName("department_id")
             .IsRequired();
 
-        builder.Property(x => x.LocationId)
-            .HasColumnName("location_id")
+        builder.Property(x => x.PositionId)
+            .HasColumnName("position_id")
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)
