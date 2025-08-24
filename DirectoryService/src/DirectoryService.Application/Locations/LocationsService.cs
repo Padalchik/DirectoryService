@@ -42,7 +42,13 @@ public class LocationsService
         }
 
         var location = new Location(locationNameResult.Value, locationAddressResult.Value, locationTimezoneResult.Value);
-        await _locationsRepository.AddAsync(location, cancellationToken);
+        var addLocationResult = await _locationsRepository.AddAsync(location, cancellationToken);
+        if (addLocationResult.IsFailure)
+        {
+            _logger.LogInformation(addLocationResult.Error);
+            return Result.Failure<Location>(addLocationResult.Error);
+        }
+
         _logger.LogInformation("Location created with id {locationId}", location.Id);
 
         return Result.Success(location);

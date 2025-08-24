@@ -1,4 +1,5 @@
-﻿using DirectoryService.Application.Locations;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Application.Locations;
 using DirectoryService.Domain.Locations;
 
 namespace DirectoryService.Infrastructure.Repositories;
@@ -12,11 +13,18 @@ public class LocationRepository : ILocationsRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Guid> AddAsync(Location location, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> AddAsync(Location location, CancellationToken cancellationToken)
     {
         await _dbContext.Locations.AddAsync(location);
-        await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return location.Id;
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return Result.Success(location.Id);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<Guid>("Problem with SaveChangesAsync Location");
+        }
     }
 }
