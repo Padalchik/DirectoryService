@@ -2,6 +2,7 @@
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain.Locations;
 using Microsoft.Extensions.Logging;
+using Address = DirectoryService.Domain.Locations.Address;
 
 namespace DirectoryService.Application.Locations;
 
@@ -25,7 +26,8 @@ public class LocationsService
             return Result.Failure<Location>(locationNameResult.Error);
         }
 
-        var locationAddressResult = Address.Create(createLocationDto.City, createLocationDto.Street, createLocationDto.HouseNumber);
+        var addressDto = createLocationDto.address;
+        var locationAddressResult = Address.Create(addressDto.City, addressDto.Street, addressDto.HouseNumber);
         if (locationAddressResult.IsFailure)
         {
             _logger.LogInformation(locationAddressResult.Error);
