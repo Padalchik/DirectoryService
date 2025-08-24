@@ -1,7 +1,6 @@
-﻿using DirectoryService.Domain.Location;
+﻿using DirectoryService.Domain.Locations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Constants = DirectoryService.Domain.Location.Constants;
 
 namespace DirectoryService.Infrastructure.Configurations;
 

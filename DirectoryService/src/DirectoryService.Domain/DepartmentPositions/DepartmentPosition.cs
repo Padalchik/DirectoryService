@@ -1,6 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-
-namespace DirectoryService.Domain.DepartmentPosition;
+﻿namespace DirectoryService.Domain.DepartmentPositions;
 
 public class DepartmentPosition
 {

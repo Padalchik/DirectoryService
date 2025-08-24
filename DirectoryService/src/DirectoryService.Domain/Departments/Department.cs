@@ -1,11 +1,13 @@
 ﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.DepartmentLocations;
+using DirectoryService.Domain.DepartmentPositions;
 
-namespace DirectoryService.Domain.Department;
+namespace DirectoryService.Domain.Departments;
 public class Department
 {
     private HashSet<Department> _children = [];
-    private HashSet<DepartmentLocation.DepartmentLocation> _locations = [];
-    private HashSet<DepartmentPosition.DepartmentPosition> _positions = [];
+    private HashSet<DepartmentLocation> _locations = [];
+    private HashSet<DepartmentPosition> _positions = [];
 
     public Guid Id { get; }
 
@@ -30,9 +32,9 @@ public class Department
 
     public IReadOnlySet<Department> Children => _children;
 
-    public IReadOnlySet<DepartmentLocation.DepartmentLocation> Locations => _locations;
+    public IReadOnlySet<DepartmentLocation> Locations => _locations;
 
-    public IReadOnlySet<DepartmentPosition.DepartmentPosition> Positions => _positions;
+    public IReadOnlySet<DepartmentPosition> Positions => _positions;
 
     private Department(DepartmentName name, DepartmentIdentifier identifier, Department? parent = null)
     {

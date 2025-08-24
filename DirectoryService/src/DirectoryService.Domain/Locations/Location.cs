@@ -1,9 +1,6 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Position;
+﻿namespace DirectoryService.Domain.Locations;
 
-namespace DirectoryService.Domain.Location;
-
-public class Location
+public partial class Location
 {
     public Guid Id { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using DirectoryService.Domain.DepartmentPosition;
+﻿using DirectoryService.Domain.DepartmentPositions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

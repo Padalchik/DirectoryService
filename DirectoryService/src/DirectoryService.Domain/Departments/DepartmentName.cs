@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Department;
 
-namespace DirectoryService.Domain;
+namespace DirectoryService.Domain.Departments;
 
 public record DepartmentName
 {

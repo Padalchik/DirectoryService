@@ -1,4 +1,4 @@
-﻿namespace DirectoryService.Domain.Position;
+﻿namespace DirectoryService.Domain.Positions;
 
 public class Constants
 {

@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using TimeZoneConverter;
 
-namespace DirectoryService.Domain.Location;
+namespace DirectoryService.Domain.Locations;
 
 public record Timezone
 {

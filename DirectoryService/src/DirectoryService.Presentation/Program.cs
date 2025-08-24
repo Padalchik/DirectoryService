@@ -1,10 +1,14 @@
+using DirectoryService.Application.Locations;
 using DirectoryService.Infrastructure;
+using DirectoryService.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<ApplicationDBContext>();
+builder.Services.AddScoped<LocationsService>();
+builder.Services.AddScoped<ILocationsRepository, LocationRepository>();
 
 var app = builder.Build();
 
