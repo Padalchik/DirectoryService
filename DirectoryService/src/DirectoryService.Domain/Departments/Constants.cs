@@ -1,4 +1,4 @@
-﻿namespace DirectoryService.Domain.Department;
+﻿namespace DirectoryService.Domain.Departments;
 
 public class Constants
 {
