@@ -2,10 +2,10 @@
 
 public static class GeneralErrors
 {
-    public static Error ValueIsInvalid(string? name = null)
+    public static Error ValueIsInvalid(string? name = null, string? invalidField = null)
     {
         string label = name ?? "значение";
-        return Error.Validation("value.is.invalid", $"{label} недействительно");
+        return Error.Validation("value.is.invalid", $"{label} недействительно", invalidField);
     }
 
     public static Error ValueIsRequired(string? name = null)

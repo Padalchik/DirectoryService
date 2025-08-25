@@ -16,7 +16,7 @@ public record Timezone
     public static Result<Timezone, Error> Create(string value)
     {
         if (!TZConvert.TryGetTimeZoneInfo(value, out var _))
-            return GeneralErrors.ValueIsInvalid("timezone");
+            return GeneralErrors.ValueIsInvalid("timezone", "timezone");
 
         var timezone = new Timezone(value);
         return Result.Success<Timezone, Error>(timezone);
