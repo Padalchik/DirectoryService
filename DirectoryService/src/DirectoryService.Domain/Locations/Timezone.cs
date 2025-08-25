@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Shared;
 using TimeZoneConverter;
 
 namespace DirectoryService.Domain.Locations;
@@ -11,13 +12,13 @@ public record Timezone
     {
         Value = value;
     }
-    
-    public static Result<Timezone> Create(string value)
+
+    public static Result<Timezone, Error> Create(string value)
     {
         if (!TZConvert.TryGetTimeZoneInfo(value, out var _))
-            return Result.Failure<Timezone>("Invalid timezone value");
+            return GeneralErrors.ValueIsInvalid("timezone");
 
         var timezone = new Timezone(value);
-        return Result.Success(timezone);
+        return Result.Success<Timezone, Error>(timezone);
     }
 }

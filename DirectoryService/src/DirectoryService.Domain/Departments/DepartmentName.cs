@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Domain.Departments;
 
@@ -10,19 +11,19 @@ public record DepartmentName
     {
         Name = name;
     }
-    
-    public static Result<DepartmentName> Create(string name)
+
+    public static Result<DepartmentName, Error> Create(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return Result.Failure<DepartmentName>("Department name cannot be null or empty");
-        
+            return GeneralErrors.ValueIsRequired("name");
+
         if (name.Length < Constants.MIN_DEPARTMENT_NAME_LENGTH)
-            return Result.Failure<DepartmentName>("Department name is too short");
-        
+            return GeneralErrors.IncorrectValueLength("name");
+
         if (name.Length > Constants.MAX_DEPARTMENT_NAME_LENGTH)
-            return Result.Failure<DepartmentName>("Department name is too long");
+            return GeneralErrors.IncorrectValueLength("name");
 
         var departmentName = new DepartmentName(name);
-        return Result.Success(departmentName);
+        return Result.Success<DepartmentName, Error>(departmentName);
     }
 }

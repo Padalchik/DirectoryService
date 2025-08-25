@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Domain.Locations;
 
@@ -10,19 +11,19 @@ public record LocationName
     {
         Name = name;
     }
-    
-    public static Result<LocationName> Create(string name)
+
+    public static Result<LocationName, Error> Create(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return Result.Failure<LocationName>("Location name cannot be null or empty");
-        
+            return GeneralErrors.ValueIsRequired("name");
+
         if (name.Length < Constants.MIN_LOCATION_NAME_LENGTH)
-            return Result.Failure<LocationName>("Location name is too short");
-        
+            return GeneralErrors.IncorrectValueLength("name");
+
         if (name.Length > Constants.MAX_LOCATION_NAME_LENGTH)
-            return Result.Failure<LocationName>("Location name is too long");
+            return GeneralErrors.IncorrectValueLength("name");
 
         var locationName = new LocationName(name);
-        return Result.Success(locationName);
+        return Result.Success<LocationName, Error>(locationName);
     }
 }

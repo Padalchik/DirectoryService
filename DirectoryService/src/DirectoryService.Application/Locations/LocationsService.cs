@@ -22,23 +22,23 @@ public class LocationsService
         var locationNameResult = LocationName.Create(createLocationDto.Name);
         if (locationNameResult.IsFailure)
         {
-            _logger.LogInformation(locationNameResult.Error);
-            return Result.Failure<Location>(locationNameResult.Error);
+            _logger.LogInformation(locationNameResult.Error.Message);
+            return Result.Failure<Location>(locationNameResult.Error.Message);
         }
 
         var addressDto = createLocationDto.address;
         var locationAddressResult = Address.Create(addressDto.City, addressDto.Street, addressDto.HouseNumber);
         if (locationAddressResult.IsFailure)
         {
-            _logger.LogInformation(locationAddressResult.Error);
-            return Result.Failure<Location>(locationAddressResult.Error);
+            _logger.LogInformation(locationAddressResult.Error.Message);
+            return Result.Failure<Location>(locationAddressResult.Error.Message);
         }
 
         var locationTimezoneResult = Timezone.Create(createLocationDto.Timezone);
         if (locationTimezoneResult.IsFailure)
         {
-            _logger.LogInformation(locationTimezoneResult.Error);
-            return Result.Failure<Location>(locationTimezoneResult.Error);
+            _logger.LogInformation(locationTimezoneResult.Error.Message);
+            return Result.Failure<Location>(locationTimezoneResult.Error.Message);
         }
 
         var location = new Location(locationNameResult.Value, locationAddressResult.Value, locationTimezoneResult.Value);
