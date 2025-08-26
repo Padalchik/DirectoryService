@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Domain.Departments;
 
@@ -12,21 +13,21 @@ public record DepartmentIdentifier
         Identifier = identifier;
     }
 
-    public static Result<DepartmentIdentifier> Create(string identifier)
+    public static Result<DepartmentIdentifier, Error> Create(string identifier)
     {
         if (string.IsNullOrWhiteSpace(identifier))
-            return Result.Failure<DepartmentIdentifier>("Department identifier cannot be null or empty");
+            return GeneralErrors.ValueIsRequired("identifier");
 
         if (identifier.Length < Constants.MIN_DEPARTMENT_NAME_LENGTH)
-            return Result.Failure<DepartmentIdentifier>("Department identifier is too short");
+            return GeneralErrors.IncorrectValueLength("identifier");
 
         if (identifier.Length > Constants.MAX_DEPARTMENT_NAME_LENGTH)
-            return Result.Failure<DepartmentIdentifier>("Department identifier is too long");
+            return GeneralErrors.IncorrectValueLength("identifier");
 
         if (!Regex.IsMatch(identifier, @"^[a-zA-Z]+$"))
-            return Result.Failure<DepartmentIdentifier>("Department identifier must contain only Latin characters");
+            return Error.Validation("invalid.regex.format", $"Некорректный формат identifier");
 
         var departmentsName = new DepartmentIdentifier(identifier);
-        return Result.Success(departmentsName);
+        return Result.Success<DepartmentIdentifier, Error>(departmentsName);
     }
 }
