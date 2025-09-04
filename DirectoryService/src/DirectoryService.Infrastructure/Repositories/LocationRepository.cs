@@ -2,6 +2,7 @@
 using DirectoryService.Application.Locations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Shared;
+using Microsoft.EntityFrameworkCore;
 
 namespace DirectoryService.Infrastructure.Repositories;
 
@@ -27,5 +28,17 @@ public class LocationRepository : ILocationsRepository
         {
             return GeneralErrors.Failure("Problem with SaveChangesAsync Location").ToErrors();
         }
+    }
+
+    public async Task<IEnumerable<string>> GetLocationNamesAsync(CancellationToken cancellationToken)
+    {
+        var names = await _dbContext.Locations.Select(l => l.Name.Name).ToListAsync(cancellationToken);
+        return names;
+    }
+
+    public async Task<IEnumerable<Address>> GetAddressesAsync(CancellationToken cancellationToken)
+    {
+        var addresses = await _dbContext.Locations.Select(l => l.Address).ToListAsync(cancellationToken);
+        return addresses;
     }
 }
