@@ -1,4 +1,6 @@
-﻿using DirectoryService.Domain.Locations;
+﻿using DirectoryService.Application.Shared.Validation;
+using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.Shared;
 using FluentValidation;
 
 namespace DirectoryService.Application.Locations;
@@ -7,11 +9,11 @@ public class CreateLocationValidator : AbstractValidator<CreateLocationCommand>
 {
     public CreateLocationValidator()
     {
-        RuleFor(x => x.CreateLocationDto).NotNull().WithMessage("CreateLocationDto = null");
+        RuleFor(x => x.CreateLocationDto).NotNull().WithError(GeneralErrors.ValueIsRequired("CreateLocationDto"));
 
-        RuleFor(x => x.CreateLocationDto.Name).MinimumLength(Constants.MIN_LOCATION_NAME_LENGTH).WithMessage("");
-        RuleFor(x => x.CreateLocationDto.Name).MaximumLength(Constants.MAX_LOCATION_NAME_LENGTH).WithMessage("");
+        RuleFor(x => x.CreateLocationDto.Name).MustBeValueObject(LocationName.Create);
+        RuleFor(x => x.CreateLocationDto.Timezone).MustBeValueObject(Timezone.Create);
         
-        RuleFor(x => x.CreateLocationDto.Name)
+        RuleFor(x => x.CreateLocationDto.Address).MustBeValueObject(a => Address.Create(a.City, a.Street, a.HouseNumber));
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Application.Abstractions;
@@ -7,5 +6,5 @@ namespace DirectoryService.Application.Abstractions;
 public interface ICommandHandler<TResponse, in TCommand>
     where TCommand : ICommand
 {
-    Task<Result<TResponse, Error>> Handle(TCommand command, CancellationToken cancellationToken);
+    Task<Result<TResponse, Errors>> Handle(TCommand command, CancellationToken cancellationToken);
 }
