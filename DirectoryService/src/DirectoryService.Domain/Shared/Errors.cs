@@ -18,8 +18,7 @@ public class Errors : IEnumerable<Error>
 
     public static implicit operator Errors(List<Error> errors) => new(errors);
 
-    public static implicit operator Errors(Error error)
-        => new([error]);
+    public static implicit operator Errors(Error error) => new([error]);
 
     public IEnumerator<Error> GetEnumerator()
     {
@@ -27,4 +26,6 @@ public class Errors : IEnumerable<Error>
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public override string ToString() => string.Join(".", _errors.Select(e => e.ToString()));
 }
