@@ -30,15 +30,13 @@ public class LocationRepository : ILocationsRepository
         }
     }
 
-    public async Task<IEnumerable<string>> GetLocationNamesAsync(CancellationToken cancellationToken)
+    public async Task<bool> IsNameUsedAsync(string name, CancellationToken cancellationToken)
     {
-        var names = await _dbContext.Locations.Select(l => l.Name.Name).ToListAsync(cancellationToken);
-        return names;
+        return await _dbContext.Locations.AnyAsync(l => l.Name.Name == name, cancellationToken);
     }
 
-    public async Task<IEnumerable<Address>> GetAddressesAsync(CancellationToken cancellationToken)
+    public async Task<bool> IsAddressUsedAsync(Address address, CancellationToken cancellationToken)
     {
-        var addresses = await _dbContext.Locations.Select(l => l.Address).ToListAsync(cancellationToken);
-        return addresses;
+        return await _dbContext.Locations.AnyAsync(l => l.Address == address, cancellationToken);
     }
 }

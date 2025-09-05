@@ -8,7 +8,7 @@ public interface ILocationsRepository
 {
     Task<Result<Guid, Errors>> AddAsync(Location location, CancellationToken cancellationToken);
 
-    Task<IEnumerable<string>> GetLocationNamesAsync(CancellationToken cancellationToken);
+    Task<bool> IsNameUsedAsync(string name, CancellationToken cancellationToken);
 
-    Task<IEnumerable<Address>> GetAddressesAsync(CancellationToken cancellationToken);
+    Task<bool> IsAddressUsedAsync(Address address, CancellationToken cancellationToken);
 }

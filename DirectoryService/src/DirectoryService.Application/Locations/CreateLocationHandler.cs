@@ -31,8 +31,7 @@ public class CreateLocationHandler : ICommandHandler<Location, CreateLocationCom
         if (validationResult.IsValid == false)
             return validationResult.ToList();
 
-        var existedNames = await _locationsRepository.GetLocationNamesAsync(cancellationToken);
-        if (existedNames.Contains(command.CreateLocationDto.Name))
+        if (await _locationsRepository.IsNameUsedAsync(command.CreateLocationDto.Name, cancellationToken))
         {
             _logger.LogInformation("LocationName '{locationName}' already exists", command.CreateLocationDto.Name);
             return GeneralErrors.ValueIsInvalid("Name", "Name").ToErrors();
@@ -43,8 +42,7 @@ public class CreateLocationHandler : ICommandHandler<Location, CreateLocationCom
         var locationTimezoneResult = Timezone.Create(command.CreateLocationDto.Timezone);
 
         var locationAddressResult = Address.Create(addressDto.City, addressDto.Street, addressDto.HouseNumber);
-        var usedAddresses = await _locationsRepository.GetAddressesAsync(cancellationToken);
-        if (usedAddresses.Contains(locationAddressResult.Value))
+        if (await _locationsRepository.IsAddressUsedAsync(locationAddressResult.Value, cancellationToken))
         {
             string msg = $"Address '{locationAddressResult.Value}' already used";
             _logger.LogInformation(msg);
