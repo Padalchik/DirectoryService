@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using DirectoryService.Domain.Shared;
 
-namespace DirectoryService.Presentation.Response;
+namespace DirectoryService.API.Response;
 
 public record Envelope
 {

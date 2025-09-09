@@ -1,15 +1,13 @@
-using System.Runtime.InteropServices.JavaScript;
-using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Domain.Locations;
-using DirectoryService.Domain.Shared;
+using DirectoryService.API.Middlewares;
+using DirectoryService.Application.Positions;
+using DirectoryService.Domain.Positions;
 using DirectoryService.Infrastructure;
 using DirectoryService.Infrastructure.Repositories;
-using DirectoryService.Presentation.Middlewares;
 using FluentValidation;
 using Serilog;
-using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,9 +20,15 @@ Log.Logger = new LoggerConfiguration()
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<ApplicationDBContext>();
+
 builder.Services.AddScoped<ICommandHandler<Location, CreateLocationCommand>, CreateLocationHandler>();
 builder.Services.AddScoped<ILocationsRepository, LocationRepository>();
 builder.Services.AddScoped<IValidator<CreateLocationCommand>, CreateLocationValidator>();
+
+builder.Services.AddScoped<ICommandHandler<Position, CreatePositionCommand>, CreatePositionHandler>();
+builder.Services.AddScoped<IPositionsRepository, PositionRepository>();
+builder.Services.AddScoped<IValidator<CreatePositionCommand>, CreatePositionValidator>();
+
 builder.Services.AddSerilog();
 
 var app = builder.Build();
