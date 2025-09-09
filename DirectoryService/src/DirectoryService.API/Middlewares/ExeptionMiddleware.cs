@@ -1,7 +1,7 @@
-﻿using DirectoryService.Domain.Shared;
-using DirectoryService.Presentation.Response;
+﻿using DirectoryService.API.Response;
+using DirectoryService.Domain.Shared;
 
-namespace DirectoryService.Presentation.Middlewares;
+namespace DirectoryService.API.Middlewares;
 
 public class ExeptionMiddleware
 {

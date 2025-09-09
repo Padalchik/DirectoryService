@@ -14,9 +14,9 @@ public class Position
 
     public DateTime UpdatedAt { get; private set; }
 
-    public Position(Guid id, PositionName name, PositionDescription description)
+    public Position(Guid? id, PositionName name, PositionDescription description)
     {
-        Id = id;
+        Id = id ?? Guid.NewGuid();
         Name = name;
         Description = description;
         IsActive = true;
