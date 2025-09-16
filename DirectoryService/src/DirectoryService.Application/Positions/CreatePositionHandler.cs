@@ -1,6 +1,8 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Runtime.CompilerServices;
+using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Shared.Validation;
+using DirectoryService.Domain.DepartmentPositions;
 using DirectoryService.Domain.Positions;
 using DirectoryService.Domain.Shared;
 using FluentValidation;
@@ -55,6 +57,15 @@ public class CreatePositionHandler : ICommandHandler<Position, CreatePositionCom
             _logger.LogInformation(addPositionResult.Error.ToString());
             return addPositionResult.Error;
         }
+
+        var departmentPositionList = new List<DepartmentPosition>();
+
+        foreach (var departmentId in command.CreatePositionDto.DepartmentIds)
+        {
+            departmentPositionList.Add(new DepartmentPosition(position.Id, departmentId));
+        }
+
+        position.UpdatePositions(departmentPositionList);
 
         _logger.LogInformation("Position created with id {positionId}", position.Id);
 
