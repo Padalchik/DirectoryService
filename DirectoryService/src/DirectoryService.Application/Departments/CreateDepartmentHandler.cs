@@ -56,6 +56,14 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
             parentDepartment = parentDepartmentResult.Value;
         }
 
+        if (!await _departmentsRepository.IsIdentifierUniqueByDepartmentParentAsync(
+            departmentIdentifierResult.Value,
+            parentDepartment, cancellationToken))
+        {
+            _logger.LogInformation("Identifier is not unique in parent level");
+            return GeneralErrors.ValueIsInvalid("Identifier").ToErrors();
+        }
+
         var createDepartmentResult = Department.Create(departmentNameResult.Value, departmentIdentifierResult.Value, parentDepartment);
         var department = createDepartmentResult.Value;
 

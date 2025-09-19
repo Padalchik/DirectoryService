@@ -48,4 +48,11 @@ public class DepartmentRepository : IDepartmentsRepository
 
         return department;
     }
+
+    public async Task<bool> IsIdentifierUniqueByDepartmentParentAsync(DepartmentIdentifier identifier, Department? parentDepartment,
+        CancellationToken cancellationToken)
+    {
+        var isIdentifierExist = await _dbContext.Departments.AnyAsync(d => d.Parent == parentDepartment && d.Identifier == identifier, cancellationToken);
+        return !isIdentifierExist;
+    }
 }
