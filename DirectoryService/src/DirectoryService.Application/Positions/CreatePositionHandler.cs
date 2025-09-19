@@ -32,9 +32,19 @@ public class CreatePositionHandler : ICommandHandler<Position, CreatePositionCom
         if (validationResult.IsValid == false)
             return validationResult.ToList();
 
-        var applicationLogicResult = await IsApplicationLogicCompleteAsync(command, cancellationToken);
-        if (applicationLogicResult.IsFailure)
-            return applicationLogicResult.Error;
+        if (await _positionsRepository.IsNameUsedAsync(command.CreatePositionDto.Name, cancellationToken))
+        {
+            _logger.LogInformation("PositionName '{positionName}' already exists", command.CreatePositionDto.Name);
+            return GeneralErrors.ValueIsInvalid("Name", "Name").ToErrors();
+        }
+
+        if (!await _positionsRepository.IsDepartmentsIsActiveAsync(
+                command.CreatePositionDto.DepartmentIds,
+                cancellationToken))
+        {
+            _logger.LogInformation("Error with  DepartmentIds");
+            return GeneralErrors.ValueIsInvalid("DepartmentIds").ToErrors();
+        }
 
         var positionNameResult = PositionName.Create(command.CreatePositionDto.Name);
         if (positionNameResult.IsFailure)
@@ -70,24 +80,5 @@ public class CreatePositionHandler : ICommandHandler<Position, CreatePositionCom
         _logger.LogInformation("Position created with id {positionId}", position.Id);
 
         return Result.Success<Position, Errors>(position);
-    }
-
-    private async Task<Result<bool, Errors>> IsApplicationLogicCompleteAsync(CreatePositionCommand command, CancellationToken cancellationToken)
-    {
-        if (await _positionsRepository.IsNameUsedAsync(command.CreatePositionDto.Name, cancellationToken))
-        {
-            _logger.LogInformation("PositionName '{positionName}' already exists", command.CreatePositionDto.Name);
-            return GeneralErrors.ValueIsInvalid("Name", "Name").ToErrors();
-        }
-
-        if (!await _positionsRepository.IsDepartmentsIsActiveAsync(
-                command.CreatePositionDto.DepartmentIds,
-                cancellationToken))
-        {
-            _logger.LogInformation("Error with  DepartmentIds");
-            return GeneralErrors.ValueIsInvalid("DepartmentIds").ToErrors();
-        }
-
-        return Result.Success<bool, Errors>(true);
     }
 }

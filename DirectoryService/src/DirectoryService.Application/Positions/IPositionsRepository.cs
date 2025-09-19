@@ -10,5 +10,5 @@ public interface IPositionsRepository
 
     Task<bool> IsNameUsedAsync(string name, CancellationToken cancellationToken);
 
-    Task<bool> IsDepartmentsIsActiveAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
+    Task<bool> IsDepartmentsIsActiveAsync(IEnumerable<Guid> departmentIds, CancellationToken cancellationToken);
 }

@@ -2,7 +2,9 @@ using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.API.Middlewares;
+using DirectoryService.Application.Departments;
 using DirectoryService.Application.Positions;
+using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Positions;
 using DirectoryService.Infrastructure;
 using DirectoryService.Infrastructure.Repositories;
@@ -28,6 +30,10 @@ builder.Services.AddScoped<IValidator<CreateLocationCommand>, CreateLocationVali
 builder.Services.AddScoped<ICommandHandler<Position, CreatePositionCommand>, CreatePositionHandler>();
 builder.Services.AddScoped<IPositionsRepository, PositionRepository>();
 builder.Services.AddScoped<IValidator<CreatePositionCommand>, CreatePositionValidator>();
+
+builder.Services.AddScoped<ICommandHandler<Department, CreateDepartmentCommand>, CreateDepartmentHandler>();
+builder.Services.AddScoped<IDepartmentsRepository, DepartmentRepository>();
+builder.Services.AddScoped<IValidator<CreateDepartmentCommand>, CreateDepartmentValidator>();
 
 builder.Services.AddSerilog();
 
