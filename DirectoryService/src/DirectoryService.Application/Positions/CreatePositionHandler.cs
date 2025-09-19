@@ -61,12 +61,12 @@ public class CreatePositionHandler : ICommandHandler<Position, CreatePositionCom
         }
 
         var position = new Position(null, positionNameResult.Value, positionDescriptionResult.Value);
-        var addPositionResult = await _positionsRepository.AddAsync(position, cancellationToken);
+        /*var addPositionResult = await _positionsRepository.AddAsync(position, cancellationToken);
         if (addPositionResult.IsFailure)
         {
             _logger.LogInformation(addPositionResult.Error.ToString());
             return addPositionResult.Error;
-        }
+        }*/
 
         var departmentPositionList = new List<DepartmentPosition>();
 
@@ -76,6 +76,13 @@ public class CreatePositionHandler : ICommandHandler<Position, CreatePositionCom
         }
 
         position.UpdatePositions(departmentPositionList);
+
+        var addPositionResult = await _positionsRepository.AddAsync(position, cancellationToken);
+        if (addPositionResult.IsFailure)
+        {
+            _logger.LogInformation(addPositionResult.Error.ToString());
+            return addPositionResult.Error;
+        }
 
         _logger.LogInformation("Position created with id {positionId}", position.Id);
 
