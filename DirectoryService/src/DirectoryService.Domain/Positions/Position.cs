@@ -41,7 +41,7 @@ public class Position
     public UnitResult<Error> UpdatePositions(IEnumerable<DepartmentPosition> newPositions)
     {
         if (newPositions.Count() == 0)
-            return Error.Validation("department.position", "Department positions must contain at least one position");
+            return Error.Validation("position.department", "Department positions must contain at least one position");
 
         _departments = newPositions.ToHashSet();
         UpdatedAt = DateTime.UtcNow;

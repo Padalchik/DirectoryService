@@ -43,7 +43,7 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
 
         builder.HasMany(d => d.Departments)
             .WithOne()
-            .HasForeignKey(dl => dl.DepartmentId)
+            .HasForeignKey(dl => dl.PositionId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
     }

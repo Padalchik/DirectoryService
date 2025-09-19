@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Shared.Validation;
+using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using FluentValidation;
@@ -41,7 +42,7 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
         var departmentNameResult = DepartmentName.Create(command.CreateDepartmentDto.Name);
         var departmentIdentifierResult = DepartmentIdentifier.Create(command.CreateDepartmentDto.Identifier);
 
-        Department parentDepartment = null;
+        Department? parentDepartment = null;
 
         if (command.CreateDepartmentDto.ParentId != null)
         {
@@ -57,6 +58,15 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
 
         var createDepartmentResult = Department.Create(departmentNameResult.Value, departmentIdentifierResult.Value, parentDepartment);
         var department = createDepartmentResult.Value;
+
+        var departmentLocations = command.CreateDepartmentDto.LocationIds.Select(ids => new DepartmentLocation(ids, department.Id)).ToList();
+        var updateLocations = department.UpdateLocations(departmentLocations);
+        if (updateLocations.IsFailure)
+        {
+            _logger.LogInformation(updateLocations.Error.ToString());
+            return updateLocations.Error.ToErrors();
+        }
+
         var addDepartmentResult = await _departmentsRepository.AddAsync(department, cancellationToken);
         if (addDepartmentResult.IsFailure)
         {

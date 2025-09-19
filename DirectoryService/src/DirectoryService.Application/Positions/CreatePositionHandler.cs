@@ -61,21 +61,14 @@ public class CreatePositionHandler : ICommandHandler<Position, CreatePositionCom
         }
 
         var position = new Position(null, positionNameResult.Value, positionDescriptionResult.Value);
-        /*var addPositionResult = await _positionsRepository.AddAsync(position, cancellationToken);
-        if (addPositionResult.IsFailure)
-        {
-            _logger.LogInformation(addPositionResult.Error.ToString());
-            return addPositionResult.Error;
-        }*/
 
-        var departmentPositionList = new List<DepartmentPosition>();
-
-        foreach (var departmentId in command.CreatePositionDto.DepartmentIds)
+        var departmentPositionList = command.CreatePositionDto.DepartmentIds.Select(departmentId => new DepartmentPosition(position.Id, departmentId)).ToList();
+        var updatePositionsResult = position.UpdatePositions(departmentPositionList);
+        if (updatePositionsResult.IsFailure)
         {
-            departmentPositionList.Add(new DepartmentPosition(position.Id, departmentId));
+            _logger.LogInformation(updatePositionsResult.Error.ToString());
+            return updatePositionsResult.Error.ToErrors();
         }
-
-        position.UpdatePositions(departmentPositionList);
 
         var addPositionResult = await _positionsRepository.AddAsync(position, cancellationToken);
         if (addPositionResult.IsFailure)
