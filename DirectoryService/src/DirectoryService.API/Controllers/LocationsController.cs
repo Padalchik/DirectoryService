@@ -17,7 +17,6 @@ public class LocationsController : ControllerBase
                                             [FromBody] CreateLocationDto createLocationDto,
                                             CancellationToken cancellationToken)
     {
-
         var command = new CreateLocationCommand(createLocationDto);
         var createLocationResult = handler.Handle(command, cancellationToken).Result;
 

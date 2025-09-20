@@ -20,7 +20,6 @@ public class DepartmentsController : ControllerBase
         [FromBody] CreateDepartmentDto createDepartmentDto,
         CancellationToken cancellationToken)
     {
-
         var command = new CreateDepartmentCommand(createDepartmentDto);
         var createDepartmentResult = handler.Handle(command, cancellationToken).Result;
 

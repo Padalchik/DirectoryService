@@ -17,7 +17,6 @@ public class PositionsController : ControllerBase
         [FromBody] CreatePositionDto createPositionDto,
         CancellationToken cancellationToken)
     {
-
         var command = new CreatePositionCommand(createPositionDto);
         var createPositionResult = handler.Handle(command, cancellationToken).Result;
 

@@ -1,11 +1,8 @@
-using DirectoryService.Application.Abstractions;
-using DirectoryService.Application.Locations;
-using DirectoryService.Domain.Locations;
 using DirectoryService.API.Middlewares;
+using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments;
+using DirectoryService.Application.Locations;
 using DirectoryService.Application.Positions;
-using DirectoryService.Domain.Departments;
-using DirectoryService.Domain.Positions;
 using DirectoryService.Infrastructure;
 using DirectoryService.Infrastructure.Repositories;
 using FluentValidation;
@@ -21,19 +18,20 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddScoped<ApplicationDBContext>();
+builder.Services.AddDbContext<ApplicationDBContext>();
 
-builder.Services.AddScoped<ICommandHandler<Location, CreateLocationCommand>, CreateLocationHandler>();
+var applicationAssembly = typeof(CreateLocationHandler).Assembly;
+
+builder.Services.Scan(scan => scan.FromAssemblies(applicationAssembly)
+    .AddClasses(classes => classes.AssignableToAny(typeof(ICommandHandler<,>)))
+    .AsSelfWithInterfaces()
+    .WithScopedLifetime());
+
+builder.Services.AddValidatorsFromAssembly(applicationAssembly);
+
 builder.Services.AddScoped<ILocationsRepository, LocationRepository>();
-builder.Services.AddScoped<IValidator<CreateLocationCommand>, CreateLocationValidator>();
-
-builder.Services.AddScoped<ICommandHandler<Position, CreatePositionCommand>, CreatePositionHandler>();
 builder.Services.AddScoped<IPositionsRepository, PositionRepository>();
-builder.Services.AddScoped<IValidator<CreatePositionCommand>, CreatePositionValidator>();
-
-builder.Services.AddScoped<ICommandHandler<Department, CreateDepartmentCommand>, CreateDepartmentHandler>();
 builder.Services.AddScoped<IDepartmentsRepository, DepartmentRepository>();
-builder.Services.AddScoped<IValidator<CreateDepartmentCommand>, CreateDepartmentValidator>();
 
 builder.Services.AddSerilog();
 
