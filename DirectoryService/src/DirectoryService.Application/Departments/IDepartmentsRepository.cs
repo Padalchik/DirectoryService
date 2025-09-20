@@ -11,6 +11,4 @@ public interface IDepartmentsRepository
     Task<bool> IsLocationsIsExistAsync(IEnumerable<Guid> locationIds, CancellationToken cancellationToken);
 
     Task<Result<Department, Errors>> GetDepartmentByIdAsync(Guid departmentId, CancellationToken cancellationToken);
-
-    Task<bool> IsIdentifierUniqueByDepartmentParentAsync(DepartmentIdentifier identifier, Department? parentDepartment, CancellationToken cancellationToken);
 }
