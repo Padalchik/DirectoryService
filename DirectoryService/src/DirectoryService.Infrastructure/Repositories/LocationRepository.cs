@@ -17,7 +17,7 @@ public class LocationRepository : ILocationsRepository
 
     public async Task<Result<Guid, Errors>> AddAsync(Location location, CancellationToken cancellationToken)
     {
-        await _dbContext.Locations.AddAsync(location);
+        await _dbContext.Locations.AddAsync(location, cancellationToken);
 
         try
         {

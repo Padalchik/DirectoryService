@@ -32,12 +32,14 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
                 .HasColumnName("name");
         });
 
-        builder.ComplexProperty(d => d.Identifier, di =>
+        builder.OwnsOne(d => d.Identifier, ib =>
         {
-            di.Property(d => d.Identifier)
-                .IsRequired()
+            ib.Property(x => x.Identifier)
+                .HasColumnName("identifier")
                 .HasMaxLength(Constants.MAX_DEPARTMENT_NAME_LENGTH)
-                .HasColumnName("identifier");
+                .IsRequired();
+
+            ib.HasIndex(x => x.Identifier).IsUnique();
         });
 
         builder.Property(d => d.Path)
