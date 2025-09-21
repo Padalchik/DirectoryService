@@ -7,18 +7,18 @@ public record PositionDescription
 {
     public string Value { get; init; }
 
-    private PositionDescription(string value)
+    private PositionDescription(string? value)
     {
-        Value = value;
+        Value = value ?? string.Empty;
     }
 
-    public static Result<PositionDescription, Error> Create(string value)
+    public static Result<PositionDescription, Error> Create(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return GeneralErrors.ValueIsRequired("position description");
-
-        if (value.Length > Constants.MAX_POSITION_DESCRIPTION_LENGTH)
-            return GeneralErrors.IncorrectValueLength("position description");
+        if (value != null)
+        {
+            if (value.Length > Constants.MAX_POSITION_DESCRIPTION_LENGTH)
+                return GeneralErrors.IncorrectValueLength("position description");
+        }
 
         var locationName = new PositionDescription(value);
         return Result.Success<PositionDescription, Error>(locationName);

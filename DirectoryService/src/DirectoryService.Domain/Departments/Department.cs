@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.DepartmentPositions;
+using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Domain.Departments;
 public class Department
@@ -72,6 +73,17 @@ public class Department
         newParent?.AddChild(this);
     }
 
+    public UnitResult<Error> UpdateLocations(IEnumerable<DepartmentLocation> newLocations)
+    {
+        if (newLocations.Count() == 0)
+            return Error.Validation("department.location", "Department locations must contain at least one location");
+
+        _locations = newLocations.ToHashSet();
+        Touch();
+
+        return UnitResult.Success<Error>();
+    }
+
     private void RemoveChild(Department child)
     {
         _children.Remove(child);
@@ -80,12 +92,14 @@ public class Department
 
     private void SetParent(Department? parentDepartment)
     {
+        var selfPath = $"{Identifier.Identifier}".ToLowerInvariant();
+
         if (parentDepartment == null)
         {
             Parent = null;
             ParentId = null;
             Depth = 0;
-            Path = $"{Name}".ToLowerInvariant();
+            Path = selfPath;
         }
         else
         {
@@ -94,7 +108,7 @@ public class Department
 
             Parent = parentDepartment;
             ParentId = parentDepartment.Id;
-            Path = $"{parentDepartment.Path}.{Name}".ToLowerInvariant();
+            Path = $"{parentDepartment.Path}.{selfPath}";
             Depth = (short)(parentDepartment.Depth + 1);
         }
 
