@@ -1,7 +1,11 @@
-﻿namespace DirectoryService.Domain.Locations;
+﻿using DirectoryService.Domain.DepartmentLocations;
+
+namespace DirectoryService.Domain.Locations;
 
 public partial class Location
 {
+    private HashSet<DepartmentLocation> _departments = [];
+
     public Guid Id { get; set; }
 
     public LocationName Name { get; private set; }
@@ -15,6 +19,8 @@ public partial class Location
     public DateTime CreatedAt { get; private set; }
 
     public DateTime UpdatedAt { get; private set; }
+
+    public IReadOnlySet<DepartmentLocation> Departments => _departments;
 
     public Location(LocationName name, Address address, Timezone timezone)
     {

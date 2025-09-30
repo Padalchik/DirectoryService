@@ -54,5 +54,11 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
 
         builder.Property(d => d.UpdatedAt)
             .HasColumnName("updated_at");
+
+        builder.HasMany(d => d.Departments)
+            .WithOne()
+            .HasForeignKey(dl => dl.LocationId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

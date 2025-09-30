@@ -39,4 +39,10 @@ public class LocationRepository : ILocationsRepository
     {
         return await _dbContext.Locations.AnyAsync(l => l.Address == address, cancellationToken);
     }
+
+    public async Task<bool> IsLocationsIsExistAsync(IEnumerable<Guid> locationIds, CancellationToken cancellationToken)
+    {
+        int count = await _dbContext.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken);
+        return count == locationIds.Count();
+    }
 }

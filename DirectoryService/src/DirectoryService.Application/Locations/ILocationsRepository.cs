@@ -11,4 +11,6 @@ public interface ILocationsRepository
     Task<bool> IsNameUsedAsync(string name, CancellationToken cancellationToken);
 
     Task<bool> IsAddressUsedAsync(Address address, CancellationToken cancellationToken);
+
+    Task<bool> IsLocationsIsExistAsync(IEnumerable<Guid> locationIds, CancellationToken cancellationToken);
 }

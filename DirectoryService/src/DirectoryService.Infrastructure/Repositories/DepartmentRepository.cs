@@ -30,22 +30,22 @@ public class DepartmentRepository : IDepartmentsRepository
         }
     }
 
-    public async Task<bool> IsLocationsIsExistAsync(IEnumerable<Guid> locationIds, CancellationToken cancellationToken)
-    {
-        int count = await _dbContext.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken);
-        return count == locationIds.Count();
-    }
-
     public async Task<Result<Department, Errors>> GetDepartmentByIdAsync(
         Guid departmentId,
         CancellationToken cancellationToken)
     {
         var department = await _dbContext.Departments
+            .Include(d => d.Locations)
             .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
 
         if (department is null)
             return GeneralErrors.NotFound(departmentId).ToErrors();
 
         return department;
+    }
+
+    public async Task Save()
+    {
+        await _dbContext.SaveChangesAsync();
     }
 }

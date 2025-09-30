@@ -12,7 +12,6 @@ public class DepartmentLocation
 
     public DepartmentLocation(Guid locationId, Guid departmentId)
     {
-        Id = Guid.NewGuid();
         DepartmentId = departmentId;
         LocationId = locationId;
         CreatedAt = DateTime.UtcNow;
