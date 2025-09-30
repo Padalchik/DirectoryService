@@ -31,7 +31,7 @@ public class DepartmentsController : ControllerBase
             return Envelope.Ok(createDepartmentResult.Value.Id);
     }
 
-    [HttpPut]
+    [HttpPatch]
     [Route("/api/departments/{departmentId}/locations")]
     public async Task<Envelope> UpdateLocations(
         [FromRoute] Guid departmentId,
