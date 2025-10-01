@@ -19,7 +19,7 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
 
     public CreateDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
-        ILocationsRepository locationsRepository, //это я добавил новый репозиторий. МБ надо сделать [FormService]
+        ILocationsRepository locationsRepository,
         ILogger<CreateDepartmentHandler> logger,
         IValidator<CreateDepartmentCommand> validator)
     {

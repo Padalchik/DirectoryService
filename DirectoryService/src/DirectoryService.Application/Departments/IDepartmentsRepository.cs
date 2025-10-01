@@ -10,5 +10,5 @@ public interface IDepartmentsRepository
 
     Task<Result<Department, Errors>> GetDepartmentByIdAsync(Guid departmentId, CancellationToken cancellationToken);
 
-    Task Save();
+    Task<UnitResult<Errors>> SaveAsync(CancellationToken cancellationToken);
 }

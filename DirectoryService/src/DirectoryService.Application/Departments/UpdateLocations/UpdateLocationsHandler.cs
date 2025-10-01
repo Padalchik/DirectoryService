@@ -54,7 +54,12 @@ public class UpdateLocationsHandler : ICommandHandler<Department, UpdateLocation
             return updateLocations.Error.ToErrors();
         }
 
-        await _departmentsRepository.Save();
+        var saveResult = await _departmentsRepository.SaveAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            _logger.LogInformation(saveResult.Error.ToString());
+            return saveResult.Error;
+        }
 
         return Result.Success<Department, Errors>(department);
     }
