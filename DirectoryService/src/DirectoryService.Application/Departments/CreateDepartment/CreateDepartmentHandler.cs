@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Locations;
 using DirectoryService.Application.Shared.Validation;
 using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Departments;
@@ -7,20 +8,23 @@ using DirectoryService.Domain.Shared;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 
-namespace DirectoryService.Application.Departments;
+namespace DirectoryService.Application.Departments.CreateDepartment;
 
 public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartmentCommand>
 {
     private readonly IDepartmentsRepository _departmentsRepository;
+    private readonly ILocationsRepository _locationsRepository;
     private readonly ILogger<CreateDepartmentHandler> _logger;
     private readonly IValidator<CreateDepartmentCommand> _validator;
 
     public CreateDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
+        ILocationsRepository locationsRepository,
         ILogger<CreateDepartmentHandler> logger,
         IValidator<CreateDepartmentCommand> validator)
     {
         _departmentsRepository = departmentsRepository;
+        _locationsRepository = locationsRepository;
         _validator = validator;
         _logger = logger;
     }
@@ -31,7 +35,7 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
         if (validationResult.IsValid == false)
             return validationResult.ToList();
 
-        if (!await _departmentsRepository.IsLocationsIsExistAsync(
+        if (!await _locationsRepository.IsLocationsIsExistAsync(
                 command.CreateDepartmentDto.LocationIds,
                 cancellationToken))
         {

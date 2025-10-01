@@ -1,6 +1,8 @@
 ﻿using DirectoryService.API.Response;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments;
+using DirectoryService.Application.Departments.CreateDepartment;
+using DirectoryService.Application.Departments.UpdateLocations;
 using DirectoryService.Application.Positions;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Positions;
@@ -21,11 +23,28 @@ public class DepartmentsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new CreateDepartmentCommand(createDepartmentDto);
-        var createDepartmentResult = handler.Handle(command, cancellationToken).Result;
+        var createDepartmentResult = await handler.Handle(command, cancellationToken);
 
         if (createDepartmentResult.IsFailure)
             return Envelope.Error(createDepartmentResult.Error);
         else
             return Envelope.Ok(createDepartmentResult.Value.Id);
+    }
+
+    [HttpPatch]
+    [Route("/api/departments/{departmentId}/locations")]
+    public async Task<Envelope> UpdateLocations(
+        [FromRoute] Guid departmentId,
+        [FromServices] ICommandHandler<Department, UpdateLocationsCommand> handler,
+        [FromBody] UpdateLocationsDto updateLocationsDto,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateLocationsCommand(departmentId, updateLocationsDto);
+        var updateLocationsResult = await handler.Handle(command, cancellationToken);
+
+        if (updateLocationsResult.IsFailure)
+            return Envelope.Error(updateLocationsResult.Error);
+        else
+            return Envelope.Ok(updateLocationsResult.Value.Id);
     }
 }

@@ -8,7 +8,7 @@ public interface IDepartmentsRepository
 {
     Task<Result<Guid, Errors>> AddAsync(Department department, CancellationToken cancellationToken);
 
-    Task<bool> IsLocationsIsExistAsync(IEnumerable<Guid> locationIds, CancellationToken cancellationToken);
-
     Task<Result<Department, Errors>> GetDepartmentByIdAsync(Guid departmentId, CancellationToken cancellationToken);
+
+    Task<UnitResult<Errors>> SaveAsync(CancellationToken cancellationToken);
 }
