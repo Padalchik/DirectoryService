@@ -60,4 +60,20 @@ public class DepartmentRepository : IDepartmentsRepository
             return UnitResult.Failure<Errors>(GeneralErrors.Failure());
         }
     }
+
+    public async Task<bool> IsDepartmentExistAsync(Guid departmentId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Departments.AnyAsync(d => d.Id == departmentId, cancellationToken);
+    }
+
+    public async Task<Result<bool, Errors>> HasInChildHierarchyAsync(Guid parentId, Guid possibleChildId, CancellationToken cancellationToken)
+    {
+        var departmentResult = await GetDepartmentByIdAsync(parentId, cancellationToken);
+        if (departmentResult.IsFailure)
+            return departmentResult.Error;
+
+        var department = departmentResult.Value;
+
+        return department.Children.Select(c => c.Id).Contains(possibleChildId);
+    }
 }
