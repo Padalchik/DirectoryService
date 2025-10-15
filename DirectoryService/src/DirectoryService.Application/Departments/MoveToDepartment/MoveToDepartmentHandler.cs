@@ -42,6 +42,12 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
 
         department = getDepartmentResult.Value;
 
+        if (!department.IsActive)
+        {
+            _logger.LogInformation("Department {departmentId} is not active", department);
+            return GeneralErrors.Failure().ToErrors();
+        }
+
         if (command.MoveToDepartmentDto.ParentId is Guid parentId)
         {
             if (!await _departmentsRepository.IsDepartmentExistAsync(parentId, cancellationToken))
