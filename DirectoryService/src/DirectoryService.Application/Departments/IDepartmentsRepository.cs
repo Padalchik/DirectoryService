@@ -15,4 +15,6 @@ public interface IDepartmentsRepository
     Task<bool> IsDepartmentExistAsync(Guid departmentId, CancellationToken cancellationToken);
 
     Task<Result<bool, Errors>> HasInChildHierarchyAsync(Guid parentId, Guid possibleChildId, CancellationToken cancellationToken);
+
+    Task<UnitResult<Errors>> RefreshDepartmentChildPaths(string oldPath, string newPath, CancellationToken cancellationToken);
 }

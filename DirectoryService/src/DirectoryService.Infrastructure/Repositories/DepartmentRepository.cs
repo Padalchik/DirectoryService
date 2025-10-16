@@ -39,6 +39,7 @@ public class DepartmentRepository : IDepartmentsRepository
     {
         var department = await _dbContext.Departments
             .Include(d => d.Locations)
+            .Include(d => d.Children)
             .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
 
         if (department is null)
@@ -75,5 +76,32 @@ public class DepartmentRepository : IDepartmentsRepository
         var department = departmentResult.Value;
 
         return department.Children.Select(c => c.Id).Contains(possibleChildId);
+    }
+
+    public async Task<UnitResult<Errors>> RefreshDepartmentChildPaths(
+        string oldPath,
+        string newPath,
+        CancellationToken cancellationToken)
+    {
+        string sql = $"""
+        UPDATE 
+            departments
+        SET 
+            path = @newPath::ltree || subpath(path, nlevel(@oldPath::ltree)),
+            depth = nlevel(@newPath::ltree || subpath(path, nlevel(@oldPath::ltree))) - 1
+        WHERE
+            path <@ @oldPath::ltree 
+            AND path != @oldPath::ltree;
+        """;
+
+        var parameters = new[]
+        {
+            new Npgsql.NpgsqlParameter("newPath", newPath),
+            new Npgsql.NpgsqlParameter("oldPath", oldPath),
+        };
+
+        await _dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
+
+        return UnitResult.Success<Errors>();
     }
 }

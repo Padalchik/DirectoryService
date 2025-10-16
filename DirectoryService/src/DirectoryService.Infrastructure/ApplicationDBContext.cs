@@ -16,6 +16,7 @@ public class ApplicationDBContext(IConfiguration configuration) : DbContext
     public DbSet<Department> Departments => Set<Department>();
 
     public DbSet<Location> Locations => Set<Location>();
+
     public DbSet<Position> Positions => Set<Position>();
 
     public DbSet<DepartmentLocation> DepartmentLocations => Set<DepartmentLocation>();
@@ -30,6 +31,7 @@ public class ApplicationDBContext(IConfiguration configuration) : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("ltree");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDBContext).Assembly);
     }
 

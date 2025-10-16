@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DirectoryService.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250920141027_DepartmentIdentifierIsUnique")]
-    partial class DepartmentIdentifierIsUnique
+    [Migration("20251015103313_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,7 @@ namespace DirectoryService.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "ltree");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("DirectoryService.Domain.DepartmentLocations.DepartmentLocation", b =>
@@ -48,6 +49,8 @@ namespace DirectoryService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DepartmentId");
+
+                    b.HasIndex("LocationId");
 
                     b.ToTable("department_locations", (string)null);
                 });
@@ -105,7 +108,7 @@ namespace DirectoryService.Infrastructure.Migrations
 
                     b.Property<string>("Path")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("ltree")
                         .HasColumnName("path");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -126,6 +129,11 @@ namespace DirectoryService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ParentId");
+
+                    b.HasIndex("Path")
+                        .HasDatabaseName("idx_departments_path");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Path"), "gist");
 
                     b.ToTable("departments", (string)null);
                 });
@@ -248,6 +256,12 @@ namespace DirectoryService.Infrastructure.Migrations
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("DirectoryService.Domain.Locations.Location", null)
+                        .WithMany("Departments")
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DirectoryService.Domain.DepartmentPositions.DepartmentPosition", b =>
@@ -306,6 +320,11 @@ namespace DirectoryService.Infrastructure.Migrations
                     b.Navigation("Locations");
 
                     b.Navigation("Positions");
+                });
+
+            modelBuilder.Entity("DirectoryService.Domain.Locations.Location", b =>
+                {
+                    b.Navigation("Departments");
                 });
 
             modelBuilder.Entity("DirectoryService.Domain.Positions.Position", b =>

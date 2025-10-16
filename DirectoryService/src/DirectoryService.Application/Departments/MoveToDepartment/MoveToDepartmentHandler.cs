@@ -91,6 +91,15 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
             return GeneralErrors.Failure().ToErrors();
         }
 
+        string oldPath = department.Path;
+
+        department.MoveToParent(parent);
+        await _departmentsRepository.SaveAsync(cancellationToken);
+
+        string newPath = department.Path;
+
+        await _departmentsRepository.RefreshDepartmentChildPaths(oldPath, newPath, cancellationToken);
+
         return Result.Success<Department, Errors>(department);
     }
 }

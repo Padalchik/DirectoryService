@@ -44,7 +44,10 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
         });
 
         builder.Property(d => d.Path)
-            .HasColumnName("path");
+            .HasColumnName("path")
+            .HasColumnType("ltree");
+
+        builder.HasIndex(d => d.Path).HasMethod("gist").HasDatabaseName("idx_departments_path");
 
         builder.Property(d => d.Depth)
             .HasColumnName("depth");
