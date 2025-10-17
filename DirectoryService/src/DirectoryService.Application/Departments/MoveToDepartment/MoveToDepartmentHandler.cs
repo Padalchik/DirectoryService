@@ -71,7 +71,7 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
                 _logger.LogInformation("Department {departmentId} doesn't exist", parentId);
                 return GeneralErrors.ValueIsInvalid("ParentId").ToErrors();
             }
-            
+
             var getParentResult = await _departmentsRepository.GetDepartmentByIdWithLockAsync(parentId, cancellationToken);
             if (getParentResult.IsFailure)
             {

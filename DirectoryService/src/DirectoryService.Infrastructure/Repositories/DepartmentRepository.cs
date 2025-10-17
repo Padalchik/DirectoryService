@@ -4,6 +4,7 @@ using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace DirectoryService.Infrastructure.Repositories;
 
@@ -52,18 +53,37 @@ public class DepartmentRepository : IDepartmentsRepository
         Guid departmentId,
         CancellationToken cancellationToken)
     {
-        var departmentResult = await GetDepartmentByIdAsync(departmentId, cancellationToken);
-        if (departmentResult.IsFailure)
-            return GeneralErrors.Failure("Failed to get department").ToErrors();
+        try
+        {
+            const string sql = $"""
+                                select *
+                                from departments 
+                                where path <@ (
+                                	select path 
+                                	from departments 
+                                	where id = @departmentId)
+                                FOR UPDATE
+                                """;
 
-        var department = departmentResult.Value;
+            var param = new Npgsql.NpgsqlParameter("departmentId", departmentId);
 
-        await _dbContext.Database.ExecuteSqlAsync($"SELECT * FROM Departments WHERE Id = {departmentId} FOR UPDATE ", cancellationToken);
+            await _dbContext.Database.ExecuteSqlRawAsync(sql, new[] { param }, cancellationToken);
 
-        if (department is null)
-            return GeneralErrors.NotFound(departmentId).ToErrors();
+            var rootDepartment = _dbContext.Departments
+                .Include(d => d.Locations)
+                .Include(d => d.Children)
+                .FirstOrDefault(d => d.Id == departmentId);
 
-        return department;
+            if (rootDepartment is null)
+                return GeneralErrors.NotFound(departmentId).ToErrors();
+
+            return rootDepartment;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting and locking department subtree");
+            return UnitResult.Failure<Errors>(GeneralErrors.Failure("Error locking departments")).Error;
+        }
     }
 
     public async Task<UnitResult<Errors>> SaveAsync(CancellationToken cancellationToken)
