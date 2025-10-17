@@ -55,7 +55,7 @@ public class DepartmentRepository : IDepartmentsRepository
     {
         try
         {
-            const string sql = $"""
+            const string sql = """
                                 select *
                                 from departments 
                                 where path <@ (
@@ -65,14 +65,14 @@ public class DepartmentRepository : IDepartmentsRepository
                                 FOR UPDATE
                                 """;
 
-            var param = new Npgsql.NpgsqlParameter("departmentId", departmentId);
+            var param = new NpgsqlParameter("departmentId", departmentId);
 
             await _dbContext.Database.ExecuteSqlRawAsync(sql, new[] { param }, cancellationToken);
 
-            var rootDepartment = _dbContext.Departments
+            var rootDepartment = await _dbContext.Departments
                 .Include(d => d.Locations)
                 .Include(d => d.Children)
-                .FirstOrDefault(d => d.Id == departmentId);
+                .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
 
             if (rootDepartment is null)
                 return GeneralErrors.NotFound(departmentId).ToErrors();
