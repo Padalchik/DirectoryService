@@ -48,6 +48,24 @@ public class DepartmentRepository : IDepartmentsRepository
         return department;
     }
 
+    public async Task<Result<Department, Errors>> GetDepartmentByIdWithLockAsync(
+        Guid departmentId,
+        CancellationToken cancellationToken)
+    {
+        var departmentResult = await GetDepartmentByIdAsync(departmentId, cancellationToken);
+        if (departmentResult.IsFailure)
+            return GeneralErrors.Failure("Failed to get department").ToErrors();
+
+        var department = departmentResult.Value;
+
+        await _dbContext.Database.ExecuteSqlAsync($"SELECT * FROM Departments WHERE Id = {departmentId} FOR UPDATE ", cancellationToken);
+
+        if (department is null)
+            return GeneralErrors.NotFound(departmentId).ToErrors();
+
+        return department;
+    }
+
     public async Task<UnitResult<Errors>> SaveAsync(CancellationToken cancellationToken)
     {
         try

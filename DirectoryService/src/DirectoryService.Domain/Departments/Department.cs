@@ -128,15 +128,12 @@ public class Department
         Touch();
     }
 
-    private bool IsAncestorOf(Department node)
+    private bool IsAncestorOf(Department department)
     {
-        if (node == null)
-            return false;
-        
-        if (_children.Contains(node))
+        if (_children.Contains(department))
             return true;
-        
-        return _children.Any(child => child.IsAncestorOf(node));
+
+        return _children.Any(child => child.IsAncestorOf(department));
     }
 
     private void Touch() => UpdatedAt = DateTime.UtcNow;

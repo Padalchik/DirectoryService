@@ -1,9 +1,11 @@
 using DirectoryService.API.Middlewares;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments;
 using DirectoryService.Application.Locations;
 using DirectoryService.Application.Positions;
 using DirectoryService.Infrastructure;
+using DirectoryService.Infrastructure.Database;
 using DirectoryService.Infrastructure.Repositories;
 using FluentValidation;
 using Serilog;
@@ -32,6 +34,8 @@ builder.Services.AddValidatorsFromAssembly(applicationAssembly);
 builder.Services.AddScoped<ILocationsRepository, LocationRepository>();
 builder.Services.AddScoped<IPositionsRepository, PositionRepository>();
 builder.Services.AddScoped<IDepartmentsRepository, DepartmentRepository>();
+
+builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
 builder.Services.AddSerilog();
 

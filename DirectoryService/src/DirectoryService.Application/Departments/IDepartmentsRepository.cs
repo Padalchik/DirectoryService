@@ -10,6 +10,8 @@ public interface IDepartmentsRepository
 
     Task<Result<Department, Errors>> GetDepartmentByIdAsync(Guid departmentId, CancellationToken cancellationToken);
 
+    Task<Result<Department, Errors>> GetDepartmentByIdWithLockAsync(Guid departmentId, CancellationToken cancellationToken);
+
     Task<UnitResult<Errors>> SaveAsync(CancellationToken cancellationToken);
 
     Task<bool> IsDepartmentExistAsync(Guid departmentId, CancellationToken cancellationToken);

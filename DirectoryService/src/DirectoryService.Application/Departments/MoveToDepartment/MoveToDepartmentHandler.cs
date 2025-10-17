@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Database;
 using DirectoryService.Application.Shared.Validation;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
@@ -13,29 +14,42 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
     private readonly IDepartmentsRepository _departmentsRepository;
     private readonly ILogger<MoveToDepartmentHandler> _logger;
     private readonly IValidator<MoveToDepartmentCommand> _validator;
+    private readonly ITransactionManager _transactionManager;
 
     public MoveToDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
         ILogger<MoveToDepartmentHandler> logger,
-        IValidator<MoveToDepartmentCommand> validator)
+        IValidator<MoveToDepartmentCommand> validator,
+        ITransactionManager transactionManager)
     {
         _departmentsRepository = departmentsRepository;
         _validator = validator;
         _logger = logger;
+        _transactionManager = transactionManager;
     }
 
     public async Task<Result<Department, Errors>> Handle(MoveToDepartmentCommand command, CancellationToken cancellationToken)
     {
+        var transactionScopreResult = await _transactionManager.BeginTransactionAsync(cancellationToken);
+        if (transactionScopreResult.IsFailure)
+            return transactionScopreResult.Error.ToErrors();
+
+        using var transactionScope = transactionScopreResult.Value;
+
         var validationResult = await _validator.ValidateAsync(command, cancellationToken);
         if (validationResult.IsValid == false)
+        {
+            transactionScope.Rollback();
             return validationResult.ToList();
+        }
 
         Department department = null;
         Department parent = null;
 
-        var getDepartmentResult = await _departmentsRepository.GetDepartmentByIdAsync(command.DepartmentId, cancellationToken);
+        var getDepartmentResult = await _departmentsRepository.GetDepartmentByIdWithLockAsync(command.DepartmentId, cancellationToken);
         if (getDepartmentResult.IsFailure)
         {
+            transactionScope.Rollback();
             _logger.LogInformation("Сouldn't get department {departmentId}", command.DepartmentId);
             return GeneralErrors.NotFound(command.DepartmentId).ToErrors();
         }
@@ -44,6 +58,7 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
 
         if (!department.IsActive)
         {
+            transactionScope.Rollback();
             _logger.LogInformation("Department {departmentId} is not active", department);
             return GeneralErrors.Failure().ToErrors();
         }
@@ -52,13 +67,15 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
         {
             if (!await _departmentsRepository.IsDepartmentExistAsync(parentId, cancellationToken))
             {
+                transactionScope.Rollback();
                 _logger.LogInformation("Department {departmentId} doesn't exist", parentId);
                 return GeneralErrors.ValueIsInvalid("ParentId").ToErrors();
             }
-
-            var getParentResult = await _departmentsRepository.GetDepartmentByIdAsync(parentId, cancellationToken);
+            
+            var getParentResult = await _departmentsRepository.GetDepartmentByIdWithLockAsync(parentId, cancellationToken);
             if (getParentResult.IsFailure)
             {
+                transactionScope.Rollback();
                 _logger.LogInformation("Сouldn't get department {departmentId}", parentId);
                 return GeneralErrors.NotFound(parentId).ToErrors();
             }
@@ -74,6 +91,7 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
             var isInChildHierarchyResult = await _departmentsRepository.HasInChildHierarchyAsync(department.Id, parentId, cancellationToken);
             if (isInChildHierarchyResult.IsFailure)
             {
+                transactionScope.Rollback();
                 _logger.LogInformation("Error in HasInChildHierarchyAsync.");
                 return GeneralErrors.Failure().ToErrors();
             }
@@ -94,11 +112,18 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
         string oldPath = department.Path;
 
         department.MoveToParent(parent);
-        await _departmentsRepository.SaveAsync(cancellationToken);
+        await _transactionManager.SaveChangesAsync(cancellationToken);
 
         string newPath = department.Path;
 
         await _departmentsRepository.RefreshDepartmentChildPaths(oldPath, newPath, cancellationToken);
+
+        var commiteResult = transactionScope.Commit();
+        if (commiteResult.IsFailure)
+        {
+            transactionScope.Rollback();
+            return commiteResult.Error.ToErrors();
+        }
 
         return Result.Success<Department, Errors>(department);
     }
