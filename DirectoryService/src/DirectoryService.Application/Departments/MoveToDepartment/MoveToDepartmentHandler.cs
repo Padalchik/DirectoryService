@@ -46,7 +46,8 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
         Department department = null;
         Department parent = null;
 
-        var getDepartmentResult = await _departmentsRepository.GetDepartmentByIdWithLockAsync(command.DepartmentId, cancellationToken);
+        await _departmentsRepository.LockDepartmentWithChildHierarchyAsync(command.DepartmentId, cancellationToken);
+        var getDepartmentResult = await _departmentsRepository.GetDepartmentByIdAsync(command.DepartmentId, cancellationToken);
         if (getDepartmentResult.IsFailure)
         {
             transactionScope.Rollback();
@@ -72,7 +73,7 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
                 return GeneralErrors.ValueIsInvalid("ParentId").ToErrors();
             }
 
-            var getParentResult = await _departmentsRepository.GetDepartmentByIdWithLockAsync(parentId, cancellationToken);
+            var getParentResult = await _departmentsRepository.GetDepartmentByIdAsync(parentId, cancellationToken);
             if (getParentResult.IsFailure)
             {
                 transactionScope.Rollback();

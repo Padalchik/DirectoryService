@@ -8,9 +8,9 @@ public interface IDepartmentsRepository
 {
     Task<Result<Guid, Errors>> AddAsync(Department department, CancellationToken cancellationToken);
 
-    Task<Result<Department, Errors>> GetDepartmentByIdAsync(Guid departmentId, CancellationToken cancellationToken);
+    Task<UnitResult<Errors>> LockDepartmentWithChildHierarchyAsync(Guid departmentId, CancellationToken cancellationToken);
 
-    Task<Result<Department, Errors>> GetDepartmentByIdWithLockAsync(Guid departmentId, CancellationToken cancellationToken);
+    Task<Result<Department, Errors>> GetDepartmentByIdAsync(Guid departmentId, CancellationToken cancellationToken);
 
     Task<UnitResult<Errors>> SaveAsync(CancellationToken cancellationToken);
 

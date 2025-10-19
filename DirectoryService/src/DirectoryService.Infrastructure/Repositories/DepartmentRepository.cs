@@ -34,56 +34,46 @@ public class DepartmentRepository : IDepartmentsRepository
         }
     }
 
-    public async Task<Result<Department, Errors>> GetDepartmentByIdAsync(
-        Guid departmentId,
-        CancellationToken cancellationToken)
-    {
-        var department = await _dbContext.Departments
-            .Include(d => d.Locations)
-            .Include(d => d.Children)
-            .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
-
-        if (department is null)
-            return GeneralErrors.NotFound(departmentId).ToErrors();
-
-        return department;
-    }
-
-    public async Task<Result<Department, Errors>> GetDepartmentByIdWithLockAsync(
-        Guid departmentId,
-        CancellationToken cancellationToken)
+    public async Task<UnitResult<Errors>> LockDepartmentWithChildHierarchyAsync(Guid departmentId, CancellationToken cancellationToken)
     {
         try
         {
             const string sql = """
-                                select *
-                                from departments 
-                                where path <@ (
-                                	select path 
-                                	from departments 
-                                	where id = @departmentId)
-                                FOR UPDATE
-                                """;
+                               select *
+                               from departments 
+                               where path <@ (
+                               	select path 
+                               	from departments 
+                               	where id = @departmentId)
+                               FOR UPDATE
+                               """;
 
             var param = new NpgsqlParameter("departmentId", departmentId);
-
             await _dbContext.Database.ExecuteSqlRawAsync(sql, new[] { param }, cancellationToken);
 
-            var rootDepartment = await _dbContext.Departments
-                .Include(d => d.Locations)
-                .Include(d => d.Children)
-                .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
-
-            if (rootDepartment is null)
-                return GeneralErrors.NotFound(departmentId).ToErrors();
-
-            return rootDepartment;
+            return UnitResult.Success<Errors>();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting and locking department subtree");
             return UnitResult.Failure<Errors>(GeneralErrors.Failure("Error locking departments")).Error;
         }
+
+    }
+
+    public async Task<Result<Department, Errors>> GetDepartmentByIdAsync(
+        Guid departmentId,
+        CancellationToken cancellationToken)
+    {
+        var department = await _dbContext.Departments
+            .Include(d => d.Locations)
+            .Include(d => d.Parent)
+            .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
+
+        if (department is null)
+            return GeneralErrors.NotFound(departmentId).ToErrors();
+
+        return department;
     }
 
     public async Task<UnitResult<Errors>> SaveAsync(CancellationToken cancellationToken)
