@@ -66,7 +66,7 @@ public class Department
         if (newParent == this)
             throw new InvalidOperationException("The department cannot be its own parent.");
 
-        if (newParent != null && newParent.IsDescendantOf(this))
+        if (newParent != null && this.IsAncestorOf(newParent))
             throw new InvalidOperationException("Cannot set a descendant as parent.");
 
         Parent?.RemoveChild(this);
@@ -128,10 +128,12 @@ public class Department
         Touch();
     }
 
-    private bool IsDescendantOf(Department potentialChild)
+    private bool IsAncestorOf(Department department)
     {
-        return _children.Contains(potentialChild)
-               || _children.Any(child => child.IsDescendantOf(potentialChild));
+        if (_children.Contains(department))
+            return true;
+
+        return _children.Any(child => child.IsAncestorOf(department));
     }
 
     private void Touch() => UpdatedAt = DateTime.UtcNow;

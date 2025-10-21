@@ -8,7 +8,15 @@ public interface IDepartmentsRepository
 {
     Task<Result<Guid, Errors>> AddAsync(Department department, CancellationToken cancellationToken);
 
+    Task<UnitResult<Errors>> LockDepartmentWithChildHierarchyAsync(Guid departmentId, CancellationToken cancellationToken);
+
     Task<Result<Department, Errors>> GetDepartmentByIdAsync(Guid departmentId, CancellationToken cancellationToken);
 
     Task<UnitResult<Errors>> SaveAsync(CancellationToken cancellationToken);
+
+    Task<bool> IsDepartmentExistAsync(Guid departmentId, CancellationToken cancellationToken);
+
+    Task<Result<bool, Errors>> HasInChildHierarchyAsync(Guid parentId, Guid possibleChildId, CancellationToken cancellationToken);
+
+    Task<UnitResult<Errors>> RefreshDepartmentChildPaths(string oldPath, string newPath, CancellationToken cancellationToken);
 }

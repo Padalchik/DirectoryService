@@ -21,6 +21,7 @@ namespace DirectoryService.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "ltree");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("DirectoryService.Domain.DepartmentLocations.DepartmentLocation", b =>
@@ -104,7 +105,7 @@ namespace DirectoryService.Infrastructure.Migrations
 
                     b.Property<string>("Path")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasColumnType("ltree")
                         .HasColumnName("path");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -125,6 +126,11 @@ namespace DirectoryService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ParentId");
+
+                    b.HasIndex("Path")
+                        .HasDatabaseName("idx_departments_path");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Path"), "gist");
 
                     b.ToTable("departments", (string)null);
                 });

@@ -2,6 +2,7 @@
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments;
 using DirectoryService.Application.Departments.CreateDepartment;
+using DirectoryService.Application.Departments.MoveToDepartment;
 using DirectoryService.Application.Departments.UpdateLocations;
 using DirectoryService.Application.Positions;
 using DirectoryService.Contracts.Departments;
@@ -46,5 +47,22 @@ public class DepartmentsController : ControllerBase
             return Envelope.Error(updateLocationsResult.Error);
         else
             return Envelope.Ok(updateLocationsResult.Value.Id);
+    }
+
+    [HttpPatch]
+    [Route("/api/departments/{departmentId}/parent")]
+    public async Task<Envelope> MoveToDepartment(
+        [FromRoute] Guid departmentId,
+        [FromServices] ICommandHandler<Department, MoveToDepartmentCommand> handler,
+        [FromBody] MoveToDepartmentDto moveToDepartmentDto,
+        CancellationToken cancellationToken)
+    {
+        var command = new MoveToDepartmentCommand(departmentId, moveToDepartmentDto);
+        var moveToDepartmentResult = await handler.Handle(command, cancellationToken);
+
+        if (moveToDepartmentResult.IsFailure)
+            return Envelope.Error(moveToDepartmentResult.Error);
+        else
+            return Envelope.Ok(moveToDepartmentResult.Value.Id);
     }
 }
