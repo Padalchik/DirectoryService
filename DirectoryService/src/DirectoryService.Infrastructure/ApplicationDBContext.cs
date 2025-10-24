@@ -9,9 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Infrastructure;
 
-public class ApplicationDBContext(IConfiguration configuration) : DbContext
+public class ApplicationDBContext : DbContext
 {
-    private const string DATABASE = "Database";
+    private readonly string _connectionString;
 
     public DbSet<Department> Departments => Set<Department>();
 
@@ -23,9 +23,14 @@ public class ApplicationDBContext(IConfiguration configuration) : DbContext
 
     public DbSet<DepartmentPosition> DepartmentPositions => Set<DepartmentPosition>();
 
+    public ApplicationDBContext(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(configuration.GetConnectionString(DATABASE));
+        optionsBuilder.UseNpgsql(_connectionString);
         optionsBuilder.UseLoggerFactory(CreateLoggerFactory());
     }
 
