@@ -1,6 +1,4 @@
-﻿using DirectoryService.API;
-using DirectoryService.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Testing;
+﻿using DirectoryService.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DirectoryService.IntegrationTests;
