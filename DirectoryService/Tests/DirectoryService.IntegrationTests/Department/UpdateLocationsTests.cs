@@ -11,12 +11,9 @@ namespace DirectoryService.IntegrationTests.Department;
 
 public class UpdateLocationsTests : DirectoryServiceBaseTests
 {
-    private readonly TestDataSeeder _seeder;
-
     public UpdateLocationsTests(DirectoryServiceTestWebFactory factory)
         : base(factory)
     {
-        _seeder = new TestDataSeeder(factory);
     }
 
     // Позитивные сценарии
@@ -24,11 +21,16 @@ public class UpdateLocationsTests : DirectoryServiceBaseTests
     public async Task UpdateLocations_ValidDataOneLocation_ShouldSucceed()
     {
         var cancellationToken = CancellationToken.None;
-        var defaultLocationId = await _seeder.CreateLocationAsync();
-        var departmentId = (await _seeder.CreateDepartmentAsync("Бухгалтерия", "BUH", null, [defaultLocationId], cancellationToken)).Value.Id;
+        var defaultLocationId = await LocationSeeder.CreateLocationAsync();
+        var departmentId = (await DepartmentSeeder.CreateDepartmentAsync("Бухгалтерия", "BUH", null, [defaultLocationId], cancellationToken)).Id;
 
-        var updateLocations = new List<Guid> { await _seeder.CreateLocationAsync("Коворкинг", "Санкт-Петербург", "Невский проспект", "1") };
-        var result = await _seeder.UpdateLocationsAsync(departmentId, updateLocations, cancellationToken);
+        var updateLocations = new List<Guid> { await LocationSeeder.CreateLocationAsync("Коворкинг", "Санкт-Петербург", "Невский проспект", "1") };
+
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateLocationsCommand(departmentId, new UpdateLocationsDto(updateLocations));
+            return sut.Handle(command, cancellationToken);
+        });
 
         await ExecuteDb(async dbContext =>
         {
@@ -49,15 +51,20 @@ public class UpdateLocationsTests : DirectoryServiceBaseTests
     public async Task UpdateLocations_ValidDataTwoLocations_ShouldSucceed()
     {
         var cancellationToken = CancellationToken.None;
-        var defaultLocationId = await _seeder.CreateLocationAsync();
-        var departmentId = (await _seeder.CreateDepartmentAsync("Бухгалтерия", "BUH", null, [defaultLocationId], cancellationToken)).Value.Id;
+        var defaultLocationId = await LocationSeeder.CreateLocationAsync();
+        var departmentId = (await DepartmentSeeder.CreateDepartmentAsync("Бухгалтерия", "BUH", null, [defaultLocationId], cancellationToken)).Id;
 
         var updateLocations = new List<Guid>
         {
-            await _seeder.CreateLocationAsync("Коворкинг", "Санкт-Петербург", "Невский проспект", "1"),
-            await _seeder.CreateLocationAsync("Головной офис", "Москва", "ул. Мира", "1А"),
+            await LocationSeeder.CreateLocationAsync("Коворкинг", "Санкт-Петербург", "Невский проспект", "1"),
+            await LocationSeeder.CreateLocationAsync("Головной офис", "Москва", "ул. Мира", "1А"),
         };
-        var result = await _seeder.UpdateLocationsAsync(departmentId, updateLocations, cancellationToken);
+
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateLocationsCommand(departmentId, new UpdateLocationsDto(updateLocations));
+            return sut.Handle(command, cancellationToken);
+        });
 
         await ExecuteDb(async dbContext =>
         {
@@ -79,11 +86,16 @@ public class UpdateLocationsTests : DirectoryServiceBaseTests
     public async Task UpdateLocations_InValidDataFakeLocation_ShouldFailed()
     {
         var cancellationToken = CancellationToken.None;
-        var defaultLocationId = await _seeder.CreateLocationAsync();
-        var departmentId = (await _seeder.CreateDepartmentAsync("Бухгалтерия", "BUH", null, [defaultLocationId], cancellationToken)).Value.Id;
+        var defaultLocationId = await LocationSeeder.CreateLocationAsync();
+        var departmentId = (await DepartmentSeeder.CreateDepartmentAsync("Бухгалтерия", "BUH", null, [defaultLocationId], cancellationToken)).Id;
 
         var updateLocations = new List<Guid> { Guid.Empty };
-        var result = await _seeder.UpdateLocationsAsync(departmentId, updateLocations, cancellationToken);
+
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateLocationsCommand(departmentId, new UpdateLocationsDto(updateLocations));
+            return sut.Handle(command, cancellationToken);
+        });
 
         Assert.True(result.IsFailure);
     }
@@ -92,13 +104,26 @@ public class UpdateLocationsTests : DirectoryServiceBaseTests
     public async Task UpdateLocations_InValidDataNonUniqueTwoLocations_ShouldFailed()
     {
         var cancellationToken = CancellationToken.None;
-        var defaultLocationId = await _seeder.CreateLocationAsync();
-        var departmentId = (await _seeder.CreateDepartmentAsync("Бухгалтерия", "BUH", null, [defaultLocationId], cancellationToken)).Value.Id;
-        var locationId = await _seeder.CreateLocationAsync("Коворкинг", "Санкт-Петербург", "Невский проспект", "1");
+        var defaultLocationId = await LocationSeeder.CreateLocationAsync();
+        var departmentId = (await DepartmentSeeder.CreateDepartmentAsync("Бухгалтерия", "BUH", null, [defaultLocationId], cancellationToken)).Id;
+        var locationId = await LocationSeeder.CreateLocationAsync("Коворкинг", "Санкт-Петербург", "Невский проспект", "1");
 
         var updateLocations = new List<Guid> { locationId, locationId };
-        var result = await _seeder.UpdateLocationsAsync(departmentId, updateLocations, cancellationToken);
+
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateLocationsCommand(departmentId, new UpdateLocationsDto(updateLocations));
+            return sut.Handle(command, cancellationToken);
+        });
 
         Assert.True(result.IsFailure);
+    }
+
+    private async Task<T> ExecuteHandler<T>(Func<UpdateLocationsHandler, Task<T>> action)
+    {
+        var scope = Services.CreateAsyncScope();
+        var sut = scope.ServiceProvider.GetRequiredService<UpdateLocationsHandler>();
+
+        return await action(sut);
     }
 }

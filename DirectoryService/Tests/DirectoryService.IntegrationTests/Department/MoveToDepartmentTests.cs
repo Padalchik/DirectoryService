@@ -1,15 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DirectoryService.Application.Departments.MoveToDepartment;
+using DirectoryService.Contracts.Departments;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DirectoryService.IntegrationTests.Department;
 
 public class MoveToDepartmentTests : DirectoryServiceBaseTests
 {
-    private readonly TestDataSeeder _seeder;
-
     public MoveToDepartmentTests(DirectoryServiceTestWebFactory factory)
         : base(factory)
     {
-        _seeder = new TestDataSeeder(factory);
     }
 
     // Позитивные сценарии
@@ -17,13 +17,17 @@ public class MoveToDepartmentTests : DirectoryServiceBaseTests
     public async Task CreateDepartment_ValidDataMoveToDepartment_ShouldSucceed()
     {
         var cancellationToken = CancellationToken.None;
-        var locationId = await _seeder.CreateLocationAsync();
+        var locationId = await LocationSeeder.CreateLocationAsync();
 
         const string oldBuhDepartmentPath = "BUH";
-        var adminDepartmentId = (await _seeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Value.Id;
-        var buhDepartmentId = (await _seeder.CreateDepartmentAsync("Бухгалтерия", oldBuhDepartmentPath, null, [locationId], cancellationToken)).Value.Id;
+        var adminDepartmentId = (await DepartmentSeeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Id;
+        var buhDepartmentId = (await DepartmentSeeder.CreateDepartmentAsync("Бухгалтерия", oldBuhDepartmentPath, null, [locationId], cancellationToken)).Id;
 
-        var result = await _seeder.MoveToDepartmentAsync(buhDepartmentId, adminDepartmentId, cancellationToken);
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new MoveToDepartmentCommand(buhDepartmentId, new MoveToDepartmentDto(adminDepartmentId));
+            return sut.Handle(command, cancellationToken);
+        });
 
         await ExecuteDb(async dbContext =>
         {
@@ -42,13 +46,17 @@ public class MoveToDepartmentTests : DirectoryServiceBaseTests
     public async Task CreateDepartment_ValidDataMoveToRoot_ShouldSucceed()
     {
         var cancellationToken = CancellationToken.None;
-        var locationId = await _seeder.CreateLocationAsync();
+        var locationId = await LocationSeeder.CreateLocationAsync();
 
         const string oldBuhDepartmentPath = "BUH";
-        var adminDepartmentId = (await _seeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Value.Id;
-        var buhDepartmentId = (await _seeder.CreateDepartmentAsync("Бухгалтерия", oldBuhDepartmentPath, adminDepartmentId, [locationId], cancellationToken)).Value.Id;
+        var adminDepartmentId = (await DepartmentSeeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Id;
+        var buhDepartmentId = (await DepartmentSeeder.CreateDepartmentAsync("Бухгалтерия", oldBuhDepartmentPath, adminDepartmentId, [locationId], cancellationToken)).Id;
 
-        var result = await _seeder.MoveToDepartmentAsync(buhDepartmentId, null, cancellationToken);
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new MoveToDepartmentCommand(buhDepartmentId, new MoveToDepartmentDto(null));
+            return sut.Handle(command, cancellationToken);
+        });
 
         await ExecuteDb(async dbContext =>
         {
@@ -68,10 +76,14 @@ public class MoveToDepartmentTests : DirectoryServiceBaseTests
     public async Task CreateDepartment_InValidDataFakeDepartment_ShouldFail()
     {
         var cancellationToken = CancellationToken.None;
-        var locationId = await _seeder.CreateLocationAsync();
-        var parentId = (await _seeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Value.Id;
+        var locationId = await LocationSeeder.CreateLocationAsync();
+        var parentId = (await DepartmentSeeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Id;
 
-        var result = await _seeder.MoveToDepartmentAsync(Guid.Empty, parentId, cancellationToken);
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new MoveToDepartmentCommand(Guid.Empty, new MoveToDepartmentDto(parentId));
+            return sut.Handle(command, cancellationToken);
+        });
 
         await ExecuteDb(dbContext =>
         {
@@ -84,10 +96,14 @@ public class MoveToDepartmentTests : DirectoryServiceBaseTests
     public async Task CreateDepartment_InValidDataFakeParent_ShouldFail()
     {
         var cancellationToken = CancellationToken.None;
-        var locationId = await _seeder.CreateLocationAsync();
-        var departmentId = (await _seeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Value.Id;
+        var locationId = await LocationSeeder.CreateLocationAsync();
+        var departmentId = (await DepartmentSeeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Id;
 
-        var result = await _seeder.MoveToDepartmentAsync(departmentId, Guid.Empty, cancellationToken);
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new MoveToDepartmentCommand(departmentId, new MoveToDepartmentDto(Guid.Empty));
+            return sut.Handle(command, cancellationToken);
+        });
 
         await ExecuteDb(dbContext =>
         {
@@ -100,10 +116,14 @@ public class MoveToDepartmentTests : DirectoryServiceBaseTests
     public async Task CreateDepartment_InValidDataDepartmentAndParentIsEqual_ShouldFail()
     {
         var cancellationToken = CancellationToken.None;
-        var locationId = await _seeder.CreateLocationAsync();
-        var departmentId = (await _seeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Value.Id;
+        var locationId = await LocationSeeder.CreateLocationAsync();
+        var departmentId = (await DepartmentSeeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Id;
 
-        var result = await _seeder.MoveToDepartmentAsync(departmentId, departmentId, cancellationToken);
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new MoveToDepartmentCommand(departmentId, new MoveToDepartmentDto(departmentId));
+            return sut.Handle(command, cancellationToken);
+        });
 
         await ExecuteDb(dbContext =>
         {
@@ -116,16 +136,27 @@ public class MoveToDepartmentTests : DirectoryServiceBaseTests
     public async Task CreateDepartment_InValidDataParentIsChildOfDepartment_ShouldFail()
     {
         var cancellationToken = CancellationToken.None;
-        var locationId = await _seeder.CreateLocationAsync();
-        var parentId = (await _seeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Value.Id;
-        var departmentId = (await _seeder.CreateDepartmentAsync("Бухгалтерия", "BUH", parentId, [locationId], cancellationToken)).Value.Id;
+        var locationId = await LocationSeeder.CreateLocationAsync();
+        var parentId = (await DepartmentSeeder.CreateDepartmentAsync("Администрация", "ADMIN", null, [locationId], cancellationToken)).Id;
+        var departmentId = (await DepartmentSeeder.CreateDepartmentAsync("Бухгалтерия", "BUH", parentId, [locationId], cancellationToken)).Id;
 
-        var result = await _seeder.MoveToDepartmentAsync(parentId, departmentId, cancellationToken);
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new MoveToDepartmentCommand(parentId, new MoveToDepartmentDto(departmentId));
+            return sut.Handle(command, cancellationToken);
+        });
 
         await ExecuteDb(dbContext =>
         {
             Assert.True(result.IsFailure);
             return Task.CompletedTask;
         });
+    }
+
+    private async Task<T> ExecuteHandler<T>(Func<MoveToDepartmentHandler, Task<T>> action)
+    {
+        var scope = Services.CreateAsyncScope();
+        var sut = scope.ServiceProvider.GetRequiredService<MoveToDepartmentHandler>();
+        return await action(sut);
     }
 }

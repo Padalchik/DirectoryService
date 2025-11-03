@@ -1,4 +1,5 @@
 ﻿using DirectoryService.Infrastructure;
+using DirectoryService.IntegrationTests.Seeders;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DirectoryService.IntegrationTests;
@@ -7,12 +8,21 @@ public class DirectoryServiceBaseTests : IClassFixture<DirectoryServiceTestWebFa
 {
     private readonly Func<Task> _resetDatabase;
 
+    protected DepartmentSeeder DepartmentSeeder { get; }
+
+    protected LocationSeeder LocationSeeder { get; }
+
     protected IServiceProvider Services { get; }
 
     protected DirectoryServiceBaseTests(DirectoryServiceTestWebFactory factory)
     {
-        Services = factory.Services;
         _resetDatabase = factory.ResetDatabaseAsync;
+
+        Services = factory.Services;
+        var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
+        DepartmentSeeder = new DepartmentSeeder(dbContext);
+        LocationSeeder = new LocationSeeder(dbContext);
     }
 
     protected async Task<T> ExecuteDb<T>(Func<ApplicationDBContext, Task<T>> action)
