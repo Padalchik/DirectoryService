@@ -20,7 +20,9 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddDbContext<ApplicationDBContext>();
+
+builder.Services.AddScoped<ApplicationDBContext>(_ =>
+    new ApplicationDBContext(builder.Configuration.GetConnectionString("DataBase")!));
 
 var applicationAssembly = typeof(CreateLocationHandler).Assembly;
 
@@ -53,3 +55,8 @@ app.UseSerilogRequestLogging();
 
 app.MapControllers();
 app.Run();
+
+namespace DirectoryService.API
+{
+    public partial class Program;
+}
