@@ -3,7 +3,6 @@ using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Locations;
-using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,50 +19,44 @@ public class GetLocationByIdHandler : ICommandHandler<GetLocationDto, GetLocatio
 
     public async Task<Result<GetLocationDto, Errors>> Handle(GetLocationByIdCommand command, CancellationToken cancellationToken)
     {
-        var location = await _readDbConext.LocationsRead.Include(l => l.Departments).AsNoTracking().FirstOrDefaultAsync(l => l.Id == command.LocationId, cancellationToken);
+        var locationDto = await _readDbConext.LocationsRead
+            .Include(l => l.Departments)
+            .AsNoTracking()
+            .Where(l => l.Id == command.LocationId)
+            .Select(l => new GetLocationDto
+            {
+                Id = l.Id,
+                Name = l.Name.Name,
+                City = l.Address.City,
+                Street = l.Address.Street,
+                HouseNumber = l.Address.HouseNumber,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt,
+                IsActive = l.IsActive,
+                Timezone = l.Timezone.Value,
+                Departments = _readDbConext.DepartmentsRead
+                    .Where(d => l.Departments.Select(ld => ld.DepartmentId).Contains(d.Id))
+                    .Include(d => d.Parent)
+                    .Select(d => new GetDepartmentDto
+                    {
+                        Id = d.Id,
+                        Name = d.Name.Name,
+                        Identifier = d.Identifier.Identifier,
+                        Path = d.Path,
+                        Depth = d.Depth,
+                        IsActive = d.IsActive,
+                        CreatedAt = d.CreatedAt,
+                        UpdatedAt = d.UpdatedAt,
+                        ChildrenCount = d.ChildrenCount,
+                    })
+                    .AsNoTracking()
+                    .ToList(),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (location == null)
+        if (locationDto == null)
             return GeneralErrors.NotFound(command.LocationId).ToErrors();
 
-        var departments = _readDbConext.DepartmentsRead.Where(d => location.Departments.Select(ld => ld.DepartmentId).Contains(d.Id)).Include(d => d.Parent).AsNoTracking();
-        var departmentsDto = new List<GetDepartmentDto>();
-
-        foreach (var department in departments)
-        {
-            departmentsDto.Add(CreateDepartmentDto(department));
-        }
-
-        var locationDto = new GetLocationDto()
-        {
-            Id = location.Id,
-            Name = location.Name.Name,
-            City = location.Address.City,
-            Street = location.Address.Street,
-            HouseNumber = location.Address.HouseNumber,
-            CreatedAt = location.CreatedAt,
-            UpdatedAt = location.UpdatedAt,
-            IsActive = location.IsActive,
-            Timezone = location.Timezone.Value,
-            Departments = departmentsDto,
-        };
-
         return locationDto;
-    }
-
-    private GetDepartmentDto CreateDepartmentDto(Department department)
-    {
-        return new GetDepartmentDto
-        {
-            Id = department.Id,
-            Name = department.Name.Name,
-            Identifier = department.Identifier.Identifier,
-            Parent = department.Parent != null ? CreateDepartmentDto(department.Parent) : null,
-            Path = department.Path,
-            Depth = department.Depth,
-            IsActive = department.IsActive,
-            CreatedAt = department.CreatedAt,
-            UpdatedAt = department.UpdatedAt,
-            ChildrenCount = department.ChildrenCount,
-        };
     }
 }

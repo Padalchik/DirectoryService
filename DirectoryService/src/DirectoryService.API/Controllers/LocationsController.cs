@@ -3,6 +3,7 @@ using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Application.Locations.CreateLocation;
 using DirectoryService.Application.Locations.Queries.GetLocationById;
+using DirectoryService.Application.Locations.Queries.GetLocations;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain.Locations;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +16,9 @@ public class LocationsController : ControllerBase
 {
     [HttpPost]
     public async Task<Envelope> Create(
-                                            [FromServices] ICommandHandler<Location, CreateLocationCommand> handler,
-                                            [FromBody] CreateLocationDto createLocationDto,
-                                            CancellationToken cancellationToken)
+        [FromServices] ICommandHandler<Location, CreateLocationCommand> handler,
+        [FromBody] CreateLocationDto createLocationDto,
+        CancellationToken cancellationToken)
     {
         var command = new CreateLocationCommand(createLocationDto);
         var createLocationResult = await handler.Handle(command, cancellationToken);
@@ -30,9 +31,9 @@ public class LocationsController : ControllerBase
 
     [HttpGet("{locationId}")]
     public async Task<Envelope> GetById(
-                                                [FromServices] ICommandHandler<GetLocationDto, GetLocationByIdCommand> handler,
-                                                [FromRoute] Guid locationId,
-                                                CancellationToken cancellationToken)
+        [FromServices] ICommandHandler<GetLocationDto, GetLocationByIdCommand> handler,
+        [FromRoute] Guid locationId,
+        CancellationToken cancellationToken)
     {
         var command = new GetLocationByIdCommand(locationId);
         var getLocationByIdResult = await handler.Handle(command, cancellationToken);
@@ -41,5 +42,20 @@ public class LocationsController : ControllerBase
             return Envelope.Error(getLocationByIdResult.Error);
         else
             return Envelope.Ok(getLocationByIdResult.Value);
+    }
+
+    [HttpGet]
+    public async Task<Envelope> Get(
+        [FromQuery] GetLocationsRequest getLocationsRequest,
+        [FromServices] ICommandHandler<GetLocationsResponse, GetLocationsCommand> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new GetLocationsCommand(getLocationsRequest);
+        var getLocationsResult = await handler.Handle(command, cancellationToken);
+
+        if (getLocationsResult.IsFailure)
+            return Envelope.Error(getLocationsResult.Error);
+        else
+            return Envelope.Ok(getLocationsResult.Value);
     }
 }
