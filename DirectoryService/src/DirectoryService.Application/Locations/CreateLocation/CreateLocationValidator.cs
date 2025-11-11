@@ -3,7 +3,7 @@ using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Shared;
 using FluentValidation;
 
-namespace DirectoryService.Application.Locations;
+namespace DirectoryService.Application.Locations.CreateLocation;
 
 public class CreateLocationValidator : AbstractValidator<CreateLocationCommand>
 {

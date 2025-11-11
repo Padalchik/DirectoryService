@@ -1,4 +1,5 @@
-﻿using DirectoryService.Domain.DepartmentLocations;
+﻿using DirectoryService.Application.Database;
+using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.DepartmentPositions;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Locations;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Infrastructure;
 
-public class ApplicationDBContext : DbContext
+public class ApplicationDBContext : DbContext, IReadDbConext
 {
     private readonly string _connectionString;
 
@@ -22,6 +23,10 @@ public class ApplicationDBContext : DbContext
     public DbSet<DepartmentLocation> DepartmentLocations => Set<DepartmentLocation>();
 
     public DbSet<DepartmentPosition> DepartmentPositions => Set<DepartmentPosition>();
+
+    public IQueryable<Location> LocationsRead => Set<Location>().AsNoTracking();
+
+    public IQueryable<Department> DepartmentsRead => Set<Department>().AsNoTracking();
 
     public ApplicationDBContext(string connectionString)
     {

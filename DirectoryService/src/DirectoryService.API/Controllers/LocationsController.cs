@@ -1,6 +1,8 @@
 ﻿using DirectoryService.API.Response;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
+using DirectoryService.Application.Locations.CreateLocation;
+using DirectoryService.Application.Locations.Queries.GetLocationById;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain.Locations;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +20,26 @@ public class LocationsController : ControllerBase
                                             CancellationToken cancellationToken)
     {
         var command = new CreateLocationCommand(createLocationDto);
-        var createLocationResult = handler.Handle(command, cancellationToken).Result;
+        var createLocationResult = await handler.Handle(command, cancellationToken);
 
         if (createLocationResult.IsFailure)
             return Envelope.Error(createLocationResult.Error);
         else
             return Envelope.Ok(createLocationResult.Value.Id);
+    }
+
+    [HttpGet("{locationId}")]
+    public async Task<Envelope> GetById(
+                                                [FromServices] ICommandHandler<GetLocationDto, GetLocationByIdCommand> handler,
+                                                [FromRoute] Guid locationId,
+                                                CancellationToken cancellationToken)
+    {
+        var command = new GetLocationByIdCommand(locationId);
+        var getLocationByIdResult = await handler.Handle(command, cancellationToken);
+
+        if (getLocationByIdResult.IsFailure)
+            return Envelope.Error(getLocationByIdResult.Error);
+        else
+            return Envelope.Ok(getLocationByIdResult.Value);
     }
 }
