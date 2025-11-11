@@ -9,11 +9,11 @@ public class CreateLocationValidator : AbstractValidator<CreateLocationCommand>
 {
     public CreateLocationValidator()
     {
-        RuleFor(x => x.CreateLocationDto).NotNull().WithError(GeneralErrors.ValueIsRequired("CreateLocationDto"));
+        RuleFor(x => x.CreateLocationRequest).NotNull().WithError(GeneralErrors.ValueIsRequired("CreateLocationDto"));
 
-        RuleFor(x => x.CreateLocationDto.Name).MustBeValueObject(LocationName.Create);
-        RuleFor(x => x.CreateLocationDto.Timezone).MustBeValueObject(Timezone.Create);
+        RuleFor(x => x.CreateLocationRequest.Name).MustBeValueObject(LocationName.Create);
+        RuleFor(x => x.CreateLocationRequest.Timezone).MustBeValueObject(Timezone.Create);
 
-        RuleFor(x => x.CreateLocationDto.Address).MustBeValueObject(a => Address.Create(a.City, a.Street, a.HouseNumber));
+        RuleFor(x => x.CreateLocationRequest.Address).MustBeValueObject(a => Address.Create(a.City, a.Street, a.HouseNumber));
     }
 }

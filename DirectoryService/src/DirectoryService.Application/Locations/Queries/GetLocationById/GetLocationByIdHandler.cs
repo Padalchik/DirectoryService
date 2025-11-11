@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DirectoryService.Application.Locations.Queries.GetLocationById;
 
-public class GetLocationByIdHandler : ICommandHandler<GetLocationDto, GetLocationByIdCommand>
+public class GetLocationByIdHandler : ICommandHandler<GetLocationResponse, GetLocationByIdCommand>
 {
     private readonly IReadDbConext _readDbConext;
 
@@ -17,13 +17,13 @@ public class GetLocationByIdHandler : ICommandHandler<GetLocationDto, GetLocatio
         _readDbConext = readDbConext;
     }
 
-    public async Task<Result<GetLocationDto, Errors>> Handle(GetLocationByIdCommand command, CancellationToken cancellationToken)
+    public async Task<Result<GetLocationResponse, Errors>> Handle(GetLocationByIdCommand command, CancellationToken cancellationToken)
     {
         var locationDto = await _readDbConext.LocationsRead
             .Include(l => l.Departments)
             .AsNoTracking()
             .Where(l => l.Id == command.LocationId)
-            .Select(l => new GetLocationDto
+            .Select(l => new GetLocationResponse
             {
                 Id = l.Id,
                 Name = l.Name.Name,
@@ -37,7 +37,7 @@ public class GetLocationByIdHandler : ICommandHandler<GetLocationDto, GetLocatio
                 Departments = _readDbConext.DepartmentsRead
                     .Where(d => l.Departments.Select(ld => ld.DepartmentId).Contains(d.Id))
                     .Include(d => d.Parent)
-                    .Select(d => new GetDepartmentDto
+                    .Select(d => new GetDepartmentResponse
                     {
                         Id = d.Id,
                         Name = d.Name.Name,

@@ -2,7 +2,7 @@
 
 namespace DirectoryService.Contracts.Locations;
 
-public record GetLocationDto
+public record GetLocationResponse
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = string.Empty;
@@ -13,6 +13,5 @@ public record GetLocationDto
     public bool IsActive { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
-
-    public List<GetDepartmentDto> Departments { get; init; } = [];
+    public List<GetDepartmentResponse> Departments { get; init; } = [];
 }

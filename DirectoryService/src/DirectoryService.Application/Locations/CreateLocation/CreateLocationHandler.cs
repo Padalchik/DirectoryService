@@ -31,15 +31,15 @@ public class CreateLocationHandler : ICommandHandler<Location, CreateLocationCom
         if (validationResult.IsValid == false)
             return validationResult.ToList();
 
-        if (await _locationsRepository.IsNameUsedAsync(command.CreateLocationDto.Name, cancellationToken))
+        if (await _locationsRepository.IsNameUsedAsync(command.CreateLocationRequest.Name, cancellationToken))
         {
-            _logger.LogInformation("LocationName '{locationName}' already exists", command.CreateLocationDto.Name);
+            _logger.LogInformation("LocationName '{locationName}' already exists", command.CreateLocationRequest.Name);
             return GeneralErrors.ValueIsInvalid("Name", "Name").ToErrors();
         }
 
-        var addressDto = command.CreateLocationDto.Address;
-        var locationNameResult = LocationName.Create(command.CreateLocationDto.Name);
-        var locationTimezoneResult = Timezone.Create(command.CreateLocationDto.Timezone);
+        var addressDto = command.CreateLocationRequest.Address;
+        var locationNameResult = LocationName.Create(command.CreateLocationRequest.Name);
+        var locationTimezoneResult = Timezone.Create(command.CreateLocationRequest.Timezone);
 
         var locationAddressResult = Address.Create(addressDto.City, addressDto.Street, addressDto.HouseNumber);
         if (await _locationsRepository.IsAddressUsedAsync(locationAddressResult.Value, cancellationToken))

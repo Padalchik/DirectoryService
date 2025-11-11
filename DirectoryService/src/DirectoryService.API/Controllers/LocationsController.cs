@@ -17,10 +17,10 @@ public class LocationsController : ControllerBase
     [HttpPost]
     public async Task<Envelope> Create(
         [FromServices] ICommandHandler<Location, CreateLocationCommand> handler,
-        [FromBody] CreateLocationDto createLocationDto,
+        [FromBody] CreateLocationRequest createLocationRequest,
         CancellationToken cancellationToken)
     {
-        var command = new CreateLocationCommand(createLocationDto);
+        var command = new CreateLocationCommand(createLocationRequest);
         var createLocationResult = await handler.Handle(command, cancellationToken);
 
         if (createLocationResult.IsFailure)
@@ -31,7 +31,7 @@ public class LocationsController : ControllerBase
 
     [HttpGet("{locationId}")]
     public async Task<Envelope> GetById(
-        [FromServices] ICommandHandler<GetLocationDto, GetLocationByIdCommand> handler,
+        [FromServices] ICommandHandler<GetLocationResponse, GetLocationByIdCommand> handler,
         [FromRoute] Guid locationId,
         CancellationToken cancellationToken)
     {

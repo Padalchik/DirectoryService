@@ -45,7 +45,7 @@ public class GetLocationsHandler : ICommandHandler<GetLocationsResponse, GetLoca
             .Skip((command.Request.Page - 1) * command.Request.PageSize)
             .Take(command.Request.PageSize);
 
-        var locations = await locationsQuery.Select(l => new GetLocationDto
+        var locations = await locationsQuery.Select(l => new GetLocationResponse
         {
             Id = l.Id,
             Name = l.Name.Name,
@@ -59,7 +59,7 @@ public class GetLocationsHandler : ICommandHandler<GetLocationsResponse, GetLoca
             Departments = _readDbConext.DepartmentsRead
                 .Where(d => l.Departments.Select(ld => ld.DepartmentId).Contains(d.Id))
                 .Include(d => d.Parent)
-                .Select(d => new GetDepartmentDto
+                .Select(d => new GetDepartmentResponse
                 {
                     Id = d.Id,
                     Name = d.Name.Name,
