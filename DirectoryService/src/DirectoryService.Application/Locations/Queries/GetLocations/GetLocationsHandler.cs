@@ -17,7 +17,7 @@ public class GetLocationsHandler : ICommandHandler<GetLocationsResponse, GetLoca
         _readDbConext = readDbConext;
     }
 
-    public async Task<Result<GetLocationsResponse, Errors>>? Handle(
+    public async Task<Result<GetLocationsResponse, Errors>> Handle(
         GetLocationsCommand command,
         CancellationToken cancellationToken)
     {
@@ -64,6 +64,7 @@ public class GetLocationsHandler : ICommandHandler<GetLocationsResponse, GetLoca
                     Id = d.Id,
                     Name = d.Name.Name,
                     Identifier = d.Identifier.Identifier,
+                    ParentId = d.ParentId,
                     Path = d.Path,
                     Depth = d.Depth,
                     IsActive = d.IsActive,

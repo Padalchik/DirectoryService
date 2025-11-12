@@ -42,6 +42,7 @@ public class GetLocationByIdHandler : ICommandHandler<GetLocationResponse, GetLo
                         Id = d.Id,
                         Name = d.Name.Name,
                         Identifier = d.Identifier.Identifier,
+                        ParentId = d.ParentId,
                         Path = d.Path,
                         Depth = d.Depth,
                         IsActive = d.IsActive,
