@@ -59,7 +59,7 @@ public class GetLocationsHandler : ICommandHandler<GetLocationsResponse, GetLoca
             Departments = _readDbConext.DepartmentsRead
                 .Where(d => l.Departments.Select(ld => ld.DepartmentId).Contains(d.Id))
                 .Include(d => d.Parent)
-                .Select(d => new GetDepartmentResponse
+                .Select(d => new DepartmentInfoDto
                 {
                     Id = d.Id,
                     Name = d.Name.Name,

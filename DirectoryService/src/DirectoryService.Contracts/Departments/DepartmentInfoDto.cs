@@ -2,7 +2,7 @@
 
 namespace DirectoryService.Contracts.Departments;
 
-public record GetDepartmentResponse
+public record DepartmentInfoDto
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = string.Empty;
