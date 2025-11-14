@@ -18,7 +18,7 @@ public class PositionsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new CreatePositionCommand(createPositionDto);
-        var createPositionResult = handler.Handle(command, cancellationToken).Result;
+        var createPositionResult = await handler.Handle(command, cancellationToken);
 
         if (createPositionResult.IsFailure)
             return Envelope.Error(createPositionResult.Error);

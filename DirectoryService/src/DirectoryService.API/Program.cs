@@ -3,6 +3,7 @@ using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments;
 using DirectoryService.Application.Locations;
+using DirectoryService.Application.Locations.CreateLocation;
 using DirectoryService.Application.Positions;
 using DirectoryService.Infrastructure;
 using DirectoryService.Infrastructure.Database;
@@ -22,6 +23,9 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<ApplicationDBContext>(_ =>
+    new ApplicationDBContext(builder.Configuration.GetConnectionString("DataBase")!));
+
+builder.Services.AddScoped<IReadDbConext>(_ =>
     new ApplicationDBContext(builder.Configuration.GetConnectionString("DataBase")!));
 
 var applicationAssembly = typeof(CreateLocationHandler).Assembly;
