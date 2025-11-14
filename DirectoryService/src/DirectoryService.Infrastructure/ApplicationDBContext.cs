@@ -28,6 +28,8 @@ public class ApplicationDBContext : DbContext, IReadDbConext
 
     public IQueryable<Department> DepartmentsRead => Set<Department>().AsNoTracking();
 
+    public IQueryable<Position> PositionsRead => Set<Position>().AsNoTracking();
+
     public ApplicationDBContext(string connectionString)
     {
         _connectionString = connectionString;
