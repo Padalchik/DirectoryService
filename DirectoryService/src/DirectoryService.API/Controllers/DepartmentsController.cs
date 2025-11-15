@@ -1,14 +1,11 @@
 ﻿using DirectoryService.API.Response;
 using DirectoryService.Application.Abstractions;
-using DirectoryService.Application.Departments;
 using DirectoryService.Application.Departments.CreateDepartment;
 using DirectoryService.Application.Departments.MoveToDepartment;
+using DirectoryService.Application.Departments.Queries.GetDepartmentsTopPositions;
 using DirectoryService.Application.Departments.UpdateLocations;
-using DirectoryService.Application.Positions;
 using DirectoryService.Contracts.Departments;
-using DirectoryService.Contracts.Positions;
 using DirectoryService.Domain.Departments;
-using DirectoryService.Domain.Positions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DirectoryService.API.Controllers;
@@ -64,5 +61,20 @@ public class DepartmentsController : ControllerBase
             return Envelope.Error(moveToDepartmentResult.Error);
         else
             return Envelope.Ok(moveToDepartmentResult.Value.Id);
+    }
+
+    [HttpGet]
+    [Route("/api/departments/top-positions")]
+    public async Task<Envelope> GetDepartmentsTopPositions(
+        [FromServices] ICommandHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsCommand> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new GetDepartmentsTopPositionsCommand();
+        var getDepartmentsTopPositionsResult = await handler.Handle(command, cancellationToken);
+
+        if (getDepartmentsTopPositionsResult.IsFailure)
+            return Envelope.Error(getDepartmentsTopPositionsResult.Error);
+        else
+            return Envelope.Ok(getDepartmentsTopPositionsResult.Value);
     }
 }

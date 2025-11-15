@@ -58,7 +58,6 @@ public class GetLocationsHandler : ICommandHandler<GetLocationsResponse, GetLoca
             Timezone = l.Timezone.Value,
             Departments = _readDbConext.DepartmentsRead
                 .Where(d => l.Departments.Select(ld => ld.DepartmentId).Contains(d.Id))
-                .Include(d => d.Parent)
                 .Select(d => new DepartmentInfoDto
                 {
                     Id = d.Id,
