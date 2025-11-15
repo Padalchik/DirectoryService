@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DirectoryService.Application.Departments.Queries.GetDepartmentsTopPositions;
 
-public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetDepartmentsTopPositionsDto, GetDepartmentsTopPositionsCommand>
+public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsCommand>
 {
     private readonly IReadDbConext _readDbConext;
 
@@ -17,7 +17,7 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetDepartmentsT
         _readDbConext = readDbConext;
     }
 
-    public async Task<Result<GetDepartmentsTopPositionsDto, Errors>> Handle(
+    public async Task<Result<GetTopDepartmentsResponse, Errors>> Handle(
         GetDepartmentsTopPositionsCommand command,
         CancellationToken cancellationToken)
     {
@@ -43,8 +43,8 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetDepartmentsT
             })
             .ToListAsync(cancellationToken);
 
-        var getDepartmentsTopPositionsDto = new GetDepartmentsTopPositionsDto(departments);
+        var getTopDepartmentsResponse = new GetTopDepartmentsResponse(departments);
 
-        return getDepartmentsTopPositionsDto;
+        return getTopDepartmentsResponse;
     }
 }

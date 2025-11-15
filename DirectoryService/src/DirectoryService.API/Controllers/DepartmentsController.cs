@@ -66,7 +66,7 @@ public class DepartmentsController : ControllerBase
     [HttpGet]
     [Route("/api/departments/top-positions")]
     public async Task<Envelope> GetDepartmentsTopPositions(
-        [FromServices] ICommandHandler<GetDepartmentsTopPositionsDto, GetDepartmentsTopPositionsCommand> handler,
+        [FromServices] ICommandHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsCommand> handler,
         CancellationToken cancellationToken)
     {
         var command = new GetDepartmentsTopPositionsCommand();
