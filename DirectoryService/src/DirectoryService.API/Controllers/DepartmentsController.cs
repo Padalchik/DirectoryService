@@ -3,6 +3,7 @@ using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments.CreateDepartment;
 using DirectoryService.Application.Departments.MoveToDepartment;
 using DirectoryService.Application.Departments.Queries.GetDepartmentsTopPositions;
+using DirectoryService.Application.Departments.Queries.GetRootDepartmentsWithChilden;
 using DirectoryService.Application.Departments.UpdateLocations;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Departments;
@@ -76,5 +77,21 @@ public class DepartmentsController : ControllerBase
             return Envelope.Error(getDepartmentsTopPositionsResult.Error);
         else
             return Envelope.Ok(getDepartmentsTopPositionsResult.Value);
+    }
+
+    [HttpGet]
+    [Route("/api/departments/roots")]
+    public async Task<Envelope> GetRootDepartmentsWithChilden(
+        [FromQuery] GetRootDepartmentsWithChildenRequest request,
+        [FromServices] ICommandHandler<GetRootDepartmentsWithChildenResponse, GetRootDepartmentsWithChildenCommand> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new GetRootDepartmentsWithChildenCommand(request);
+        var getRootDepartmentsWithChildenResult = await handler.Handle(command, cancellationToken);
+
+        if (getRootDepartmentsWithChildenResult.IsFailure)
+            return Envelope.Error(getRootDepartmentsWithChildenResult.Error);
+        else
+            return Envelope.Ok(getRootDepartmentsWithChildenResult.Value);
     }
 }

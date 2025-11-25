@@ -43,6 +43,8 @@ builder.Services.AddScoped<IDepartmentsRepository, DepartmentRepository>();
 
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
+builder.Services.AddScoped<IDbConnectionFactory, NpgSlqConnectionFactory>();
+
 builder.Services.AddSerilog();
 
 var app = builder.Build();
