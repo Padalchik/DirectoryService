@@ -14,4 +14,5 @@ public record DepartmentInfoDto
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
     public int ChildrenCount { get; init; }
+    public bool HasMoreChildren { get; init; }
 }
