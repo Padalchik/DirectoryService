@@ -43,6 +43,9 @@ builder.Services.AddScoped<IDepartmentsRepository, DepartmentRepository>();
 
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
+builder.Services.AddScoped<IDbConnectionFactory, NpgSlqConnectionFactory>();
+Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+
 builder.Services.AddSerilog();
 
 var app = builder.Build();

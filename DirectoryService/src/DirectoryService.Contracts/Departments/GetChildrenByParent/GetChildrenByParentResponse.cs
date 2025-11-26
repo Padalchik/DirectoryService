@@ -1,0 +1,3 @@
+﻿namespace DirectoryService.Contracts.Departments.GetChildrenByParent;
+
+public record GetChildrenByParentResponse(IEnumerable<DepartmentInfoDto> Departments);

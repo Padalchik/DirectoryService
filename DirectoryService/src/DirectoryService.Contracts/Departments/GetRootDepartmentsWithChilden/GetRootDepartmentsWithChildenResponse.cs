@@ -1,0 +1,3 @@
+﻿namespace DirectoryService.Contracts.Departments;
+
+public record GetRootDepartmentsWithChildenResponse(IEnumerable<DepartmentInfoDto> Departments);
