@@ -39,12 +39,13 @@ public class DepartmentRepository : IDepartmentsRepository
         try
         {
             const string sql = """
+                               --
                                select *
                                from departments 
                                where path <@ (
-                               	select path 
-                               	from departments 
-                               	where id = @departmentId)
+                                select path 
+                                from departments 
+                                where id = @departmentId)
                                FOR UPDATE
                                """;
 
@@ -107,25 +108,98 @@ public class DepartmentRepository : IDepartmentsRepository
     }
 
     public async Task<UnitResult<Errors>> RefreshDepartmentChildPaths(
-        string oldPath,
-        string newPath,
+        string oldParentPath,
+        string newParentPath,
         CancellationToken cancellationToken)
     {
         string sql = $"""
-        UPDATE 
-            departments
-        SET 
-            path = @newPath::ltree || subpath(path, nlevel(@oldPath::ltree)),
-            depth = nlevel(@newPath::ltree || subpath(path, nlevel(@oldPath::ltree))) - 1
-        WHERE
-            path <@ @oldPath::ltree 
-            AND path != @oldPath::ltree;
-        """;
+                      --
+                      UPDATE 
+                      	departments
+                      SET 
+                      	path = @newPath::ltree || subpath(path, nlevel(@oldPath::ltree)),
+                      	depth = nlevel(@newPath::ltree || subpath(path, nlevel(@oldPath::ltree))) - 1
+                      WHERE
+                      	path <@ @oldPath::ltree 
+                      	AND path != @oldPath::ltree;
+                      """;
 
         var parameters = new[]
         {
-            new Npgsql.NpgsqlParameter("newPath", newPath),
-            new Npgsql.NpgsqlParameter("oldPath", oldPath),
+            new NpgsqlParameter("newPath", oldParentPath),
+            new NpgsqlParameter("oldPath", newParentPath),
+        };
+
+        await _dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
+
+        return UnitResult.Success<Errors>();
+    }
+
+    public async Task<UnitResult<Errors>> SoftDelete(Guid departmentId, CancellationToken cancellationToken)
+    {
+        string sql = $"""
+                      -- =====================================================
+                      -- Soft delete подразделения
+                      -- =====================================================
+                      
+                      UPDATE public.departments
+                      SET
+                          is_active  = false,
+                          deleted_at = @date,
+                          updated_at = @date
+                      WHERE id = @departmentId
+                      """;
+
+        var parameters = new[]
+        {
+            new NpgsqlParameter("departmentId", departmentId),
+            new NpgsqlParameter("date", DateTime.UtcNow),
+        };
+
+        await _dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
+
+        return UnitResult.Success<Errors>();
+    }
+
+    public async Task<UnitResult<Errors>> UpdateDeletedPath(Guid departmentId, CancellationToken cancellationToken)
+    {
+        string sql = $"""
+                      -- =====================================================
+                      -- СНАЧАЛА обновляем path ВСЕХ ПОТОМКОВ
+                      -- =====================================================
+                      
+                      WITH root AS (
+                          SELECT
+                              path AS old_path,
+                              subpath(path, 0, nlevel(path) - 1)
+                              ||
+                              ( ('deleted-' || subpath(path, nlevel(path) - 1, 1)::text)::ltree )
+                              AS new_path
+                          FROM public.departments
+                          WHERE id = @departmentId
+                      )
+                      UPDATE public.departments d
+                      SET
+                          path = r.new_path || subpath(d.path, nlevel(r.old_path))
+                      FROM root r
+                      WHERE d.path <@ r.old_path
+                        AND d.path != r.old_path;
+                      
+                      -- =====================================================
+                      -- ПОТОМ обновляем path самого подразделения
+                      -- =====================================================
+                      UPDATE public.departments
+                      SET
+                          path =
+                              subpath(path, 0, nlevel(path) - 1)
+                              ||
+                              ( ('deleted-' || subpath(path, nlevel(path) - 1, 1)::text)::ltree )
+                      WHERE id = @departmentId;
+                      """;
+
+        var parameters = new[]
+        {
+            new NpgsqlParameter("departmentId", departmentId),
         };
 
         await _dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);

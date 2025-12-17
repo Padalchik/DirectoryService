@@ -1,6 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
-using DirectoryService.Application.Departments.CreateDepartment;
 using DirectoryService.Application.Shared.Validation;
 using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Departments;
@@ -8,7 +7,7 @@ using DirectoryService.Domain.Shared;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 
-namespace DirectoryService.Application.Departments.UpdateLocations;
+namespace DirectoryService.Application.Departments.Commands.UpdateLocations;
 
 public class UpdateLocationsHandler : ICommandHandler<Department, UpdateLocationsCommand>
 {

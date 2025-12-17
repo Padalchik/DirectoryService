@@ -4,7 +4,7 @@ using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Domain.Positions;
 
-public class Position
+public class Position : ISoftDeletable
 {
     private HashSet<DepartmentPosition> _departments = [];
 
@@ -19,6 +19,8 @@ public class Position
     public DateTime CreatedAt { get; private set; }
 
     public DateTime UpdatedAt { get; private set; }
+
+    public DateTime? DeletedAt { get; private set; }
 
     public IReadOnlySet<DepartmentPosition> Departments => _departments;
 
@@ -47,4 +49,8 @@ public class Position
 
         return UnitResult.Success<Error>();
     }
+
+    public void Delete() => throw new NotImplementedException();
+
+    public void Restore() => throw new NotImplementedException();
 }

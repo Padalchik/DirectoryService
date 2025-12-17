@@ -74,5 +74,8 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
             .HasForeignKey(dl => dl.DepartmentId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(d => d.DeletedAt)
+            .HasColumnName("deleted_at");
     }
 }

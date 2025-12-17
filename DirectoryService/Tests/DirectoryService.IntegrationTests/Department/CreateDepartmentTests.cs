@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Departments.CreateDepartment;
+﻿using DirectoryService.Application.Departments.Commands.CreateDepartment;
 using DirectoryService.Contracts.Departments;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

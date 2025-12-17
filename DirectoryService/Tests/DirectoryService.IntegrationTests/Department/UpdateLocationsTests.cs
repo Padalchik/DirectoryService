@@ -1,6 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Departments.CreateDepartment;
-using DirectoryService.Application.Departments.UpdateLocations;
+using DirectoryService.Application.Departments.Commands.UpdateLocations;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Shared;

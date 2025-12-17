@@ -18,5 +18,9 @@ public interface IDepartmentsRepository
 
     Task<Result<bool, Errors>> HasInChildHierarchyAsync(Guid parentId, Guid possibleChildId, CancellationToken cancellationToken);
 
-    Task<UnitResult<Errors>> RefreshDepartmentChildPaths(string oldPath, string newPath, CancellationToken cancellationToken);
+    Task<UnitResult<Errors>> RefreshDepartmentChildPaths(string oldParentPath, string newParentPath, CancellationToken cancellationToken);
+
+    Task<UnitResult<Errors>> SoftDelete(Guid departmentId, CancellationToken cancellationToken);
+
+    Task<UnitResult<Errors>> UpdateDeletedPath(Guid departmentId, CancellationToken cancellationToken);
 }

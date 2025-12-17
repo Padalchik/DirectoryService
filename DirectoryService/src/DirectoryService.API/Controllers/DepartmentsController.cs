@@ -1,13 +1,15 @@
 ﻿using DirectoryService.API.Response;
 using DirectoryService.Application.Abstractions;
-using DirectoryService.Application.Departments.CreateDepartment;
-using DirectoryService.Application.Departments.MoveToDepartment;
+using DirectoryService.Application.Departments.Commands.CreateDepartment;
+using DirectoryService.Application.Departments.Commands.MoveToDepartment;
+using DirectoryService.Application.Departments.Commands.SoftDeleteDepartment;
+using DirectoryService.Application.Departments.Commands.UpdateLocations;
 using DirectoryService.Application.Departments.Queries.GetChildrenByParent;
 using DirectoryService.Application.Departments.Queries.GetDepartmentsTopPositions;
 using DirectoryService.Application.Departments.Queries.GetRootDepartmentsWithChilden;
-using DirectoryService.Application.Departments.UpdateLocations;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Departments.GetChildrenByParent;
+using DirectoryService.Contracts.Departments.GetRootDepartmentsWithChilden;
 using DirectoryService.Domain.Departments;
 using Microsoft.AspNetCore.Mvc;
 
@@ -112,5 +114,21 @@ public class DepartmentsController : ControllerBase
             return Envelope.Error(getChildrentByParentResult.Error);
         else
             return Envelope.Ok(getChildrentByParentResult.Value);
+    }
+
+    [HttpDelete]
+    [Route("/api/departments/{departmentId}")]
+    public async Task<Envelope> SoftDelete(
+        [FromRoute] Guid departmentId,
+        [FromServices] ICommandHandler<bool, SoftDeleteDepartmentCommand> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new SoftDeleteDepartmentCommand(departmentId);
+        var softDeleteResult = await handler.Handle(command, cancellationToken);
+
+        if (softDeleteResult.IsFailure)
+            return Envelope.Error(softDeleteResult.Error);
+        else
+            return Envelope.Ok(softDeleteResult.Value);
     }
 }

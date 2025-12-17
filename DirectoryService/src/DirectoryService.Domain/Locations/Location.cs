@@ -1,8 +1,9 @@
 ﻿using DirectoryService.Domain.DepartmentLocations;
+using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Domain.Locations;
 
-public partial class Location
+public partial class Location : ISoftDeletable
 {
     private HashSet<DepartmentLocation> _departments = [];
 
@@ -19,6 +20,8 @@ public partial class Location
     public DateTime CreatedAt { get; private set; }
 
     public DateTime UpdatedAt { get; private set; }
+
+    public DateTime? DeletedAt { get; private set; }
 
     public IReadOnlySet<DepartmentLocation> Departments => _departments;
 
@@ -37,4 +40,8 @@ public partial class Location
     private Location()
     {
     }
+
+    public void Delete() => throw new NotImplementedException();
+
+    public void Restore() => throw new NotImplementedException();
 }

@@ -1,5 +1,6 @@
 ﻿using DirectoryService.Application.Abstractions;
 using DirectoryService.Contracts.Departments;
+using DirectoryService.Contracts.Departments.GetRootDepartmentsWithChilden;
 
 namespace DirectoryService.Application.Departments.Queries.GetRootDepartmentsWithChilden;
 

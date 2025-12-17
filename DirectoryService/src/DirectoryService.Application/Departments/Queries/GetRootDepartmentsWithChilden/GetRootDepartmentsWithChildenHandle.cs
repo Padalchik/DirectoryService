@@ -3,6 +3,7 @@ using Dapper;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Contracts.Departments;
+using DirectoryService.Contracts.Departments.GetRootDepartmentsWithChilden;
 using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Application.Departments.Queries.GetRootDepartmentsWithChilden;
