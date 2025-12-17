@@ -87,20 +87,6 @@ public class Department : ISoftDeletable
         return UnitResult.Success<Error>();
     }
 
-    public void Delete()
-    {
-        IsActive = false;
-        DeletedAt = DateTime.UtcNow;
-        Touch();
-    }
-
-    public void Restore()
-    {
-        IsActive = true;
-        DeletedAt = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
-        Touch();
-    }
-
     private void RemoveChild(Department child)
     {
         _children.Remove(child);

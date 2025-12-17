@@ -40,8 +40,4 @@ public partial class Location : ISoftDeletable
     private Location()
     {
     }
-
-    public void Delete() => throw new NotImplementedException();
-
-    public void Restore() => throw new NotImplementedException();
 }

@@ -49,8 +49,4 @@ public class Position : ISoftDeletable
 
         return UnitResult.Success<Error>();
     }
-
-    public void Delete() => throw new NotImplementedException();
-
-    public void Restore() => throw new NotImplementedException();
 }
