@@ -7,7 +7,7 @@ using DirectoryService.Domain.Shared;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 
-namespace DirectoryService.Application.Departments.MoveToDepartment;
+namespace DirectoryService.Application.Departments.Commands.MoveToDepartment;
 
 public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartmentCommand>
 {

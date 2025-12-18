@@ -60,5 +60,8 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
             .HasForeignKey(dl => dl.LocationId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(l => l.DeletedAt)
+            .HasColumnName("deleted_at");
     }
 }

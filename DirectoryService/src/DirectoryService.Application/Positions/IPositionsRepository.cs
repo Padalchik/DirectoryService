@@ -11,4 +11,6 @@ public interface IPositionsRepository
     Task<bool> IsNameUsedAsync(string name, CancellationToken cancellationToken);
 
     Task<bool> IsDepartmentsIsActiveAsync(IEnumerable<Guid> departmentIds, CancellationToken cancellationToken);
+
+    Task<UnitResult<Errors>> SoftDeleteByDepartmentId(Guid departmentId, CancellationToken cancellationToken);
 }

@@ -3,6 +3,7 @@ using DirectoryService.Application.Locations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace DirectoryService.Infrastructure.Repositories;
 
@@ -24,7 +25,7 @@ public class LocationRepository : ILocationsRepository
             await _dbContext.SaveChangesAsync(cancellationToken);
             return Result.Success<Guid, Errors>(location.Id);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return GeneralErrors.Failure("Problem with SaveChangesAsync Location").ToErrors();
         }
@@ -44,5 +45,43 @@ public class LocationRepository : ILocationsRepository
     {
         int count = await _dbContext.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken);
         return count == locationIds.Count();
+    }
+
+    public async Task<UnitResult<Errors>> SoftDeleteByDepartmentId(Guid departmentId, CancellationToken cancellationToken)
+    {
+        string sql = $"""
+                      -- =====================================================
+                      -- Soft delete локаций
+                      -- =====================================================
+                      
+                      UPDATE public.locations l
+                      SET
+                          is_active  = false,
+                          deleted_at = @date,
+                          updated_at = @date
+                      WHERE l.id IN (
+                          SELECT DISTINCT dl.location_id
+                          FROM public.department_locations dl
+                          WHERE dl.department_id = @departmentId
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM public.department_locations dl2
+                                JOIN public.departments d2
+                                    ON d2.id = dl2.department_id
+                                WHERE dl2.location_id = dl.location_id
+                                  AND d2.is_active = true
+                            )
+                      );
+                      """;
+
+        var parameters = new[]
+        {
+            new NpgsqlParameter("departmentId", departmentId),
+            new NpgsqlParameter("date", DateTime.UtcNow),
+        };
+
+        await _dbContext.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
+
+        return UnitResult.Success<Errors>();
     }
 }

@@ -46,5 +46,8 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
             .HasForeignKey(dl => dl.PositionId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(p => p.DeletedAt)
+            .HasColumnName("deleted_at");
     }
 }

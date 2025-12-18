@@ -13,4 +13,6 @@ public interface ILocationsRepository
     Task<bool> IsAddressUsedAsync(Address address, CancellationToken cancellationToken);
 
     Task<bool> IsLocationsIsExistAsync(IEnumerable<Guid> locationIds, CancellationToken cancellationToken);
+
+    Task<UnitResult<Errors>> SoftDeleteByDepartmentId(Guid departmentId, CancellationToken cancellationToken);
 }

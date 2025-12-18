@@ -4,7 +4,7 @@ using DirectoryService.Domain.DepartmentPositions;
 using DirectoryService.Domain.Shared;
 
 namespace DirectoryService.Domain.Departments;
-public class Department
+public class Department : ISoftDeletable
 {
     private HashSet<Department> _children = [];
     private HashSet<DepartmentLocation> _locations = [];
@@ -27,6 +27,8 @@ public class Department
     public bool IsActive { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
+
+    public DateTime? DeletedAt { get; private set; }
 
     public DateTime UpdatedAt { get; private set; }
 
