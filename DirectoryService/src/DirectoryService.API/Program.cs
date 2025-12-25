@@ -6,6 +6,7 @@ using DirectoryService.Application.Locations;
 using DirectoryService.Application.Locations.CreateLocation;
 using DirectoryService.Application.Positions;
 using DirectoryService.Infrastructure;
+using DirectoryService.Infrastructure.BackgroundServices;
 using DirectoryService.Infrastructure.Database;
 using DirectoryService.Infrastructure.Repositories;
 using FluentValidation;
@@ -46,6 +47,7 @@ builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 builder.Services.AddScoped<IDbConnectionFactory, NpgSlqConnectionFactory>();
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
+builder.Services.AddHostedService<InactiveDepartmentsCleanerBackgroundService>();
 builder.Services.AddSerilog();
 
 var app = builder.Build();
