@@ -10,6 +10,7 @@ using DirectoryService.Infrastructure.BackgroundServices;
 using DirectoryService.Infrastructure.Database;
 using DirectoryService.Infrastructure.Repositories;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +52,12 @@ builder.Services.AddHostedService<InactiveDepartmentsCleanerBackgroundService>()
 builder.Services.AddSerilog();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
+    db.Database.Migrate();
+}
 
 app.UseCustomExeptionMiddleware();
 
