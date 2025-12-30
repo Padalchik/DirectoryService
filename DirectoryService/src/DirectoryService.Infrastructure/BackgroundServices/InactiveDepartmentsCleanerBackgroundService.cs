@@ -23,7 +23,8 @@ public class InactiveDepartmentsCleanerBackgroundService : BackgroundService
         _logger.LogInformation("InactiveDepartmentsCleanerBackgroundService started");
 
         // Таймер с периодом
-        using var timer = new PeriodicTimer(TimeSpan.FromDays(1));
+        //using var timer = new PeriodicTimer(TimeSpan.FromDays(1));
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
 
         try
         {
@@ -63,7 +64,6 @@ public class InactiveDepartmentsCleanerBackgroundService : BackgroundService
                           FROM public.departments
                           WHERE is_active = false
                             AND deleted_at IS NOT NULL
-                            AND deleted_at < now() - interval '1 minute'
                       ),
                       
                       -- все потомки удаляемых (любой глубины)

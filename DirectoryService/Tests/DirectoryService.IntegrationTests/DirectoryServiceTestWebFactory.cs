@@ -4,6 +4,7 @@ using DirectoryService.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
@@ -29,7 +30,12 @@ public class DirectoryServiceTestWebFactory : WebApplicationFactory<Program>, IA
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<ApplicationDBContext>();
-            services.AddScoped<ApplicationDBContext>(_ => new ApplicationDBContext(_dbContainer.GetConnectionString()));
+            services.RemoveAll<DbContextOptions<ApplicationDBContext>>();
+
+            services.AddDbContext<ApplicationDBContext>(options =>
+            {
+                options.UseNpgsql(_dbContainer.GetConnectionString());
+            });
         });
     }
 
