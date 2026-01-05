@@ -34,10 +34,6 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-
-      # ConnectionStrings для контейнера (заменяет User Secrets)
-      ConnectionStrings__DataBase: Host=postgres;Port=5432;Database=directory_service;Username=postgres;Password=postgres;
-      ConnectionStrings__Seq: http://seq:5341
     ports:
       - "8080:8080"
     restart: always
