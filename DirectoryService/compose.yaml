@@ -34,6 +34,7 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DataBase: "Host=postgres;Port=5432;Database=directory_service;Username=postgres;Password=postgres"
     ports:
       - "8080:8080"
     restart: always
