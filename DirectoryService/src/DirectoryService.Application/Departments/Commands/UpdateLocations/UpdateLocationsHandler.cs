@@ -14,14 +14,17 @@ public class UpdateLocationsHandler : ICommandHandler<Department, UpdateLocation
     private readonly IDepartmentsRepository _departmentsRepository;
     private readonly ILogger<UpdateLocationsHandler> _logger;
     private readonly IValidator<UpdateLocationsCommand> _validator;
+    private readonly ICacheService _cacheService;
 
     public UpdateLocationsHandler(
         IDepartmentsRepository departmentsRepository,
         ILogger<UpdateLocationsHandler> logger,
-        IValidator<UpdateLocationsCommand> validator)
+        IValidator<UpdateLocationsCommand> validator,
+        ICacheService cacheService)
     {
         _departmentsRepository = departmentsRepository;
         _validator = validator;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
@@ -59,6 +62,11 @@ public class UpdateLocationsHandler : ICommandHandler<Department, UpdateLocation
             _logger.LogInformation(saveResult.Error.ToString());
             return saveResult.Error;
         }
+
+        // ИНВАЛИДАЦИЯ КЭША
+        await _cacheService.RemoveByPrefixAsync(
+            "departments",
+            cancellationToken);
 
         return Result.Success<Department, Errors>(department);
     }

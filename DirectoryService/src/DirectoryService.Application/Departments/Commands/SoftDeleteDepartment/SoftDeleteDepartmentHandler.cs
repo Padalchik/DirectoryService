@@ -20,6 +20,7 @@ public class SoftDeleteDepartmentHandler : ICommandHandler<bool, SoftDeleteDepar
     private readonly IValidator<SoftDeleteDepartmentCommand> _validator;
     private readonly ILogger<SoftDeleteDepartmentHandler> _logger;
     private readonly ITransactionManager _transactionManager;
+    private readonly ICacheService _cacheService;
 
     public SoftDeleteDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
@@ -27,7 +28,8 @@ public class SoftDeleteDepartmentHandler : ICommandHandler<bool, SoftDeleteDepar
         IPositionsRepository positionsRepository,
         IValidator<SoftDeleteDepartmentCommand> validator,
         ILogger<SoftDeleteDepartmentHandler> logger,
-        ITransactionManager transactionManager)
+        ITransactionManager transactionManager,
+        ICacheService cacheService)
     {
         _departmentsRepository = departmentsRepository;
         _locationsRepository = locationsRepository;
@@ -35,6 +37,7 @@ public class SoftDeleteDepartmentHandler : ICommandHandler<bool, SoftDeleteDepar
         _validator = validator;
         _logger = logger;
         _transactionManager = transactionManager;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<bool, Errors>> Handle(SoftDeleteDepartmentCommand command, CancellationToken cancellationToken)
@@ -107,6 +110,11 @@ public class SoftDeleteDepartmentHandler : ICommandHandler<bool, SoftDeleteDepar
             _logger.LogInformation("Error at 'Commit TransactionScope'");
             return commiteResult.Error.ToErrors();
         }
+
+        // ИНВАЛИДАЦИЯ КЭША
+        await _cacheService.RemoveByPrefixAsync(
+            "departments",
+            cancellationToken);
 
         return Result.Success<bool, Errors>(true);
     }

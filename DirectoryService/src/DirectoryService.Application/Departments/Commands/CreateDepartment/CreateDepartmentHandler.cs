@@ -16,16 +16,19 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
     private readonly ILocationsRepository _locationsRepository;
     private readonly ILogger<CreateDepartmentHandler> _logger;
     private readonly IValidator<CreateDepartmentCommand> _validator;
+    private readonly ICacheService _cacheService;
 
     public CreateDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
         ILocationsRepository locationsRepository,
         ILogger<CreateDepartmentHandler> logger,
-        IValidator<CreateDepartmentCommand> validator)
+        IValidator<CreateDepartmentCommand> validator,
+        ICacheService cacheService)
     {
         _departmentsRepository = departmentsRepository;
         _locationsRepository = locationsRepository;
         _validator = validator;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
@@ -77,6 +80,11 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
             _logger.LogInformation(addDepartmentResult.Error.ToString());
             return addDepartmentResult.Error;
         }
+
+        // ИНВАЛИДАЦИЯ КЭША
+        await _cacheService.RemoveByPrefixAsync(
+            "departments",
+            cancellationToken);
 
         _logger.LogInformation("Department created with id {departmentId}", department.Id);
 

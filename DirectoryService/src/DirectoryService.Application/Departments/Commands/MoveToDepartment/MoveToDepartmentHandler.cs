@@ -15,17 +15,20 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
     private readonly ILogger<MoveToDepartmentHandler> _logger;
     private readonly IValidator<MoveToDepartmentCommand> _validator;
     private readonly ITransactionManager _transactionManager;
+    private readonly ICacheService _cacheService;
 
     public MoveToDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
         ILogger<MoveToDepartmentHandler> logger,
         IValidator<MoveToDepartmentCommand> validator,
-        ITransactionManager transactionManager)
+        ITransactionManager transactionManager,
+        ICacheService cacheService)
     {
         _departmentsRepository = departmentsRepository;
         _validator = validator;
         _logger = logger;
         _transactionManager = transactionManager;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<Department, Errors>> Handle(MoveToDepartmentCommand command, CancellationToken cancellationToken)
@@ -125,6 +128,11 @@ public class MoveToDepartmentHandler : ICommandHandler<Department, MoveToDepartm
             transactionScope.Rollback();
             return commiteResult.Error.ToErrors();
         }
+
+        // ИНВАЛИДАЦИЯ КЭША
+        await _cacheService.RemoveByPrefixAsync(
+            "departments",
+            cancellationToken);
 
         return Result.Success<Department, Errors>(department);
     }

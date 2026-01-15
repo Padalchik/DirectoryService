@@ -1,8 +1,10 @@
-﻿using DirectoryService.Application.Database;
+﻿using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments;
 using DirectoryService.Application.Locations;
 using DirectoryService.Application.Positions;
 using DirectoryService.Infrastructure.BackgroundServices;
+using DirectoryService.Infrastructure.Cache;
 using DirectoryService.Infrastructure.Database;
 using DirectoryService.Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
@@ -13,8 +15,7 @@ namespace DirectoryService.Infrastructure;
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
         services.AddScoped<ILocationsRepository, LocationRepository>();
         services.AddScoped<IPositionsRepository, PositionRepository>();
@@ -37,6 +38,30 @@ public static class DependencyInjection
 
         services.AddScoped<IReadDbConext>(_ =>
             new ApplicationDBContext(configuration.GetConnectionString("DataBase")!));
+
+        return services;
+    }
+
+    public static IServiceCollection AddRedisCache(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddStackExchangeRedisCache(options =>
+        {
+            string connection = configuration.GetConnectionString("Redis") ?? throw new ArgumentNullException(nameof(configuration));
+
+            options.Configuration = connection;
+        });
+
+        services.AddScoped<ICacheService, RedisCacheService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddDepartmentsCacheOptions(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<DepartmentsCacheOptions>(
+            configuration.GetSection("Cache:Departments"));
+
+        services.AddSingleton<IDepartmentsCachePolicy, DepartmentsCachePolicy>();
 
         return services;
     }
