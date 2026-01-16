@@ -5,44 +5,71 @@ using DirectoryService.Application.Database;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Departments.GetRootDepartmentsWithChilden;
 using DirectoryService.Domain.Shared;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Departments.Queries.GetRootDepartmentsWithChilden;
 
 public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepartmentsWithChildenResponse, GetRootDepartmentsWithChildenCommand>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly HybridCache _cache;
+    private readonly ILogger<GetRootDepartmentsWithChildenHandle> _logger;
+    private readonly IDepartmentsCachePolicy _cachePolicy;
 
-    public GetRootDepartmentsWithChildenHandle(IDbConnectionFactory dbConnectionFactory)
+    public GetRootDepartmentsWithChildenHandle(
+        IDbConnectionFactory dbConnectionFactory,
+        ILogger<GetRootDepartmentsWithChildenHandle> logger,
+        IDepartmentsCachePolicy cachePolicy,
+        HybridCache cache)
     {
         _dbConnectionFactory = dbConnectionFactory;
+        _logger = logger;
+        _cachePolicy = cachePolicy;
+        _cache = cache;
     }
 
     public async Task<Result<GetRootDepartmentsWithChildenResponse, Errors>> Handle(
         GetRootDepartmentsWithChildenCommand command, CancellationToken cancellationToken)
     {
+        string cacheKey = BuildCacheKey(command);
+
+        var response = await _cache.GetOrCreateAsync(
+            key: cacheKey,
+            factory: async ct => await LoadFromDatabaseAsync(command, ct),
+            options: CreateCacheOptions(),
+            cancellationToken: cancellationToken);
+
+        return Result.Success<GetRootDepartmentsWithChildenResponse, Errors>(response);
+    }
+
+    private async Task<GetRootDepartmentsWithChildenResponse> LoadFromDatabaseAsync(
+        GetRootDepartmentsWithChildenCommand command,
+        CancellationToken cancellationToken)
+    {
         string sql =
             $"""
-              with roots as (
-                  SELECT * FROM public.departments d WHERE d.parent_id is null
-                  ORDER by created_at
-                  OFFSET @Offset LIMIT @RootLimit
-              )
-              select
-                  *,
-                  (EXISTS (SELECT 1 FROM public.departments WHERE parent_id = roots.id OFFSET @ChildLimit LIMIT 1)) as has_more_children
-              from roots
-              
-              UNION ALL
-              
-              SELECT 
-                  c.*,
-                  (EXISTS(select 1 from public.departments WHERE parent_id = c.id)) as has_more_children
-              FROM roots r cross join lateral(
-                   SELECT * FROM public.departments d WHERE d.parent_id = r.id
-                   ORDER BY created_at
-                    LIMIT @ChildLimit
-              ) c
-              """;
+             with roots as (
+                 SELECT * FROM public.departments d WHERE d.parent_id is null
+                 ORDER by created_at
+                 OFFSET @Offset LIMIT @RootLimit
+             )
+             select
+                 *,
+                 (EXISTS (SELECT 1 FROM public.departments WHERE parent_id = roots.id OFFSET @ChildLimit LIMIT 1)) as has_more_children
+             from roots
+
+             UNION ALL
+
+             SELECT 
+                 c.*,
+                 (EXISTS(select 1 from public.departments WHERE parent_id = c.id)) as has_more_children
+             FROM roots r cross join lateral(
+                  SELECT * FROM public.departments d WHERE d.parent_id = r.id
+                  ORDER BY created_at
+                   LIMIT @ChildLimit
+             ) c
+             """;
 
         using var connection = await _dbConnectionFactory.CreateConnectionAsync(cancellationToken);
 
@@ -53,7 +80,24 @@ public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepart
             ChildLimit = command.Request.Prefetch,
         });
 
-        var response = new GetRootDepartmentsWithChildenResponse(result.ToList());
-        return Result.Success<GetRootDepartmentsWithChildenResponse, Errors>(response);
+        return new GetRootDepartmentsWithChildenResponse(result.ToList());
+    }
+
+    private HybridCacheEntryOptions CreateCacheOptions()
+    {
+        return new HybridCacheEntryOptions
+        {
+            Expiration = _cachePolicy.Ttl,
+        };
+    }
+
+    private string BuildCacheKey(GetRootDepartmentsWithChildenCommand command)
+    {
+        string mainPart = $"{_cachePolicy.Prefix}:root_departments_with_children";
+        string pagePart = $"page={command.Request.Page}";
+        string sizePart = $"size={command.Request.Size}";
+        string prefetchPart = $"prefetch={command.Request.Prefetch}";
+
+        return $"{mainPart}:{pagePart}:{sizePart}:{prefetchPart}";
     }
 }

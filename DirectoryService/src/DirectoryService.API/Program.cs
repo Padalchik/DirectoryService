@@ -9,7 +9,9 @@ builder.Services
     .AddSerilogLogging(builder.Configuration)
     .AddApi()
     .AddApplication()
-    .AddInfrastructure(builder.Configuration);
+    .AddInfrastructure()
+    .AddRedisCache(builder.Configuration)
+    .AddDepartmentsCacheOptions(builder.Configuration);
 
 var app = builder.Build();
 app.MigrateDatabase();
