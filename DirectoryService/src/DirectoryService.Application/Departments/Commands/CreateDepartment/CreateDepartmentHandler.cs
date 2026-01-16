@@ -6,6 +6,7 @@ using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Departments.Commands.CreateDepartment;
@@ -16,19 +17,22 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
     private readonly ILocationsRepository _locationsRepository;
     private readonly ILogger<CreateDepartmentHandler> _logger;
     private readonly IValidator<CreateDepartmentCommand> _validator;
-    private readonly ICacheService _cacheService;
+    private readonly HybridCache _cache;
+    private readonly IDepartmentsCachePolicy _cachePolicy;
 
     public CreateDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
         ILocationsRepository locationsRepository,
         ILogger<CreateDepartmentHandler> logger,
         IValidator<CreateDepartmentCommand> validator,
-        ICacheService cacheService)
+        IDepartmentsCachePolicy cachePolicy,
+        HybridCache cache)
     {
         _departmentsRepository = departmentsRepository;
         _locationsRepository = locationsRepository;
         _validator = validator;
-        _cacheService = cacheService;
+        _cachePolicy = cachePolicy;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -82,9 +86,7 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
         }
 
         // ИНВАЛИДАЦИЯ КЭША
-        await _cacheService.RemoveByPrefixAsync(
-            "departments",
-            cancellationToken);
+        await _cache.RemoveByTagAsync(_cachePolicy.Prefix, cancellationToken);
 
         _logger.LogInformation("Department created with id {departmentId}", department.Id);
 

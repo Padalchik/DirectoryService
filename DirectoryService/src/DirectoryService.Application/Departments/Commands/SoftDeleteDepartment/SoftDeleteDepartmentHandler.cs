@@ -4,10 +4,9 @@ using DirectoryService.Application.Database;
 using DirectoryService.Application.Locations;
 using DirectoryService.Application.Positions;
 using DirectoryService.Application.Shared.Validation;
-using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Departments.Commands.SoftDeleteDepartment;
@@ -20,7 +19,8 @@ public class SoftDeleteDepartmentHandler : ICommandHandler<bool, SoftDeleteDepar
     private readonly IValidator<SoftDeleteDepartmentCommand> _validator;
     private readonly ILogger<SoftDeleteDepartmentHandler> _logger;
     private readonly ITransactionManager _transactionManager;
-    private readonly ICacheService _cacheService;
+    private readonly HybridCache _cache;
+    private readonly IDepartmentsCachePolicy _cachePolicy;
 
     public SoftDeleteDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
@@ -29,7 +29,8 @@ public class SoftDeleteDepartmentHandler : ICommandHandler<bool, SoftDeleteDepar
         IValidator<SoftDeleteDepartmentCommand> validator,
         ILogger<SoftDeleteDepartmentHandler> logger,
         ITransactionManager transactionManager,
-        ICacheService cacheService)
+        IDepartmentsCachePolicy cachePolicy,
+        HybridCache cache)
     {
         _departmentsRepository = departmentsRepository;
         _locationsRepository = locationsRepository;
@@ -37,7 +38,8 @@ public class SoftDeleteDepartmentHandler : ICommandHandler<bool, SoftDeleteDepar
         _validator = validator;
         _logger = logger;
         _transactionManager = transactionManager;
-        _cacheService = cacheService;
+        _cachePolicy = cachePolicy;
+        _cache = cache;
     }
 
     public async Task<Result<bool, Errors>> Handle(SoftDeleteDepartmentCommand command, CancellationToken cancellationToken)
@@ -112,9 +114,7 @@ public class SoftDeleteDepartmentHandler : ICommandHandler<bool, SoftDeleteDepar
         }
 
         // ИНВАЛИДАЦИЯ КЭША
-        await _cacheService.RemoveByPrefixAsync(
-            "departments",
-            cancellationToken);
+        await _cache.RemoveByTagAsync(_cachePolicy.Prefix, cancellationToken);
 
         return Result.Success<bool, Errors>(true);
     }

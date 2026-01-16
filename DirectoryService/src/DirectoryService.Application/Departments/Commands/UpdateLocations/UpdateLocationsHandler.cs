@@ -5,6 +5,7 @@ using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Departments.Commands.UpdateLocations;
@@ -14,17 +15,20 @@ public class UpdateLocationsHandler : ICommandHandler<Department, UpdateLocation
     private readonly IDepartmentsRepository _departmentsRepository;
     private readonly ILogger<UpdateLocationsHandler> _logger;
     private readonly IValidator<UpdateLocationsCommand> _validator;
-    private readonly ICacheService _cacheService;
+    private readonly HybridCache _cache;
+    private readonly IDepartmentsCachePolicy _cachePolicy;
 
     public UpdateLocationsHandler(
         IDepartmentsRepository departmentsRepository,
         ILogger<UpdateLocationsHandler> logger,
         IValidator<UpdateLocationsCommand> validator,
-        ICacheService cacheService)
+        IDepartmentsCachePolicy cachePolicy,
+        HybridCache cache)
     {
         _departmentsRepository = departmentsRepository;
         _validator = validator;
-        _cacheService = cacheService;
+        _cachePolicy = cachePolicy;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -64,9 +68,7 @@ public class UpdateLocationsHandler : ICommandHandler<Department, UpdateLocation
         }
 
         // ИНВАЛИДАЦИЯ КЭША
-        await _cacheService.RemoveByPrefixAsync(
-            "departments",
-            cancellationToken);
+        await _cache.RemoveByTagAsync(_cachePolicy.Prefix, cancellationToken);
 
         return Result.Success<Department, Errors>(department);
     }

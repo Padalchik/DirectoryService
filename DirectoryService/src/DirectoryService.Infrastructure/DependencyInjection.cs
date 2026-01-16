@@ -51,7 +51,7 @@ public static class DependencyInjection
             options.Configuration = connection;
         });
 
-        services.AddScoped<ICacheService, RedisCacheService>();
+        services.AddHybridCache();
 
         return services;
     }

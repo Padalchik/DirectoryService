@@ -2,5 +2,7 @@
 
 public class DepartmentsCacheOptions
 {
-    public int TtlMinutes { get; init; }
+    public string Prefix { get; init; } = "departments";
+
+    public int TtlMinutes { get; init; } = 5;
 }

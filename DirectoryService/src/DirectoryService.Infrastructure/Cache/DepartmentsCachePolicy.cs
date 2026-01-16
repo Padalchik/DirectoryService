@@ -7,8 +7,11 @@ public class DepartmentsCachePolicy : IDepartmentsCachePolicy
 {
     public TimeSpan Ttl { get; }
 
-    public DepartmentsCachePolicy(IOptions<DepartmentsCacheOptions> options)
+    public string Prefix { get; }
+
+    public DepartmentsCachePolicy(IOptions<DepartmentsCacheOptions> options, string prefix)
     {
+        Prefix = prefix;
         Ttl = TimeSpan.FromMinutes(options.Value.TtlMinutes);
     }
 }

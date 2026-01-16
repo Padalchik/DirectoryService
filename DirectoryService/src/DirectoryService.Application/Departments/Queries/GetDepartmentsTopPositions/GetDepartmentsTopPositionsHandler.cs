@@ -5,6 +5,7 @@ using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Departments.Queries.GetDepartmentsTopPositions;
@@ -12,20 +13,20 @@ namespace DirectoryService.Application.Departments.Queries.GetDepartmentsTopPosi
 public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsCommand>
 {
     private readonly IReadDbConext _readDbConext;
-    private readonly ICacheService _cacheService;
-    private readonly TimeSpan _cacheTtl;
+    private readonly HybridCache _cache;
     private readonly ILogger<GetDepartmentsTopPositionsHandler> _logger;
+    private readonly IDepartmentsCachePolicy _cachePolicy;
 
     public GetDepartmentsTopPositionsHandler(
         IReadDbConext readDbConext,
-        ICacheService cacheService,
         IDepartmentsCachePolicy cachePolicy,
-        ILogger<GetDepartmentsTopPositionsHandler> logger)
+        ILogger<GetDepartmentsTopPositionsHandler> logger,
+        HybridCache cache)
     {
         _readDbConext = readDbConext;
-        _cacheService = cacheService;
+        _cachePolicy = cachePolicy;
         _logger = logger;
-        _cacheTtl = cachePolicy.Ttl;
+        _cache = cache;
     }
 
     public async Task<Result<GetTopDepartmentsResponse, Errors>> Handle(
@@ -34,50 +35,54 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmen
     {
         string cacheKey = BuildCacheKey(command);
 
-        // 1️⃣ Try get from cache
-        var response = await _cacheService.GetAsync<GetTopDepartmentsResponse>(cacheKey, cancellationToken);
+        var response = await _cache.GetOrCreateAsync(
+            key: cacheKey,
+            factory: async ct => await LoadFromDatabaseAsync(command, ct),
+            options: CreateCacheOptions(),
+            cancellationToken: cancellationToken);
 
-        if (response is null)
-        {
-            IQueryable<Department> departmentsQuery = _readDbConext.DepartmentsRead
-                .Include(d => d.Positions);
-
-            departmentsQuery = departmentsQuery.OrderByDescending(d => d.Positions.Count).ThenBy(d => d.Name.Name);
-            departmentsQuery = departmentsQuery.Take(5);
-
-            var departments = await departmentsQuery
-                .Select(d => new DepartmentInfoDto
-                {
-                    Id = d.Id,
-                    Name = d.Name.Name,
-                    Identifier = d.Identifier.Identifier,
-                    ParentId = d.ParentId,
-                    Path = d.Path,
-                    Depth = d.Depth,
-                    IsActive = d.IsActive,
-                    CreatedAt = d.CreatedAt,
-                    UpdatedAt = d.UpdatedAt,
-                    ChildrenCount = d.ChildrenCount,
-                })
-                .ToListAsync(cancellationToken);
-
-            response = new GetTopDepartmentsResponse(departments);
-
-            // 3️⃣ Save to cache
-            await _cacheService.SetAsync(
-                cacheKey,
-                response,
-                _cacheTtl,
-                cancellationToken);
-
-            _logger.LogInformation($"Cache hit: {cacheKey}");
-        }
-
-        return response;
+        return Result.Success<GetTopDepartmentsResponse, Errors>(response);
     }
 
-    private static string BuildCacheKey(GetDepartmentsTopPositionsCommand command)
+    private async Task<GetTopDepartmentsResponse> LoadFromDatabaseAsync(
+        GetDepartmentsTopPositionsCommand command,
+        CancellationToken cancellationToken)
     {
-        return $"departments:top_positions";
+        IQueryable<Department> departmentsQuery = _readDbConext.DepartmentsRead
+            .Include(d => d.Positions);
+
+        departmentsQuery = departmentsQuery.OrderByDescending(d => d.Positions.Count).ThenBy(d => d.Name.Name);
+        departmentsQuery = departmentsQuery.Take(5);
+
+        var departments = await departmentsQuery
+            .Select(d => new DepartmentInfoDto
+            {
+                Id = d.Id,
+                Name = d.Name.Name,
+                Identifier = d.Identifier.Identifier,
+                ParentId = d.ParentId,
+                Path = d.Path,
+                Depth = d.Depth,
+                IsActive = d.IsActive,
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt,
+                ChildrenCount = d.ChildrenCount,
+            })
+            .ToListAsync(cancellationToken);
+
+        return new GetTopDepartmentsResponse(departments);
+    }
+
+    private HybridCacheEntryOptions CreateCacheOptions()
+    {
+        return new HybridCacheEntryOptions
+        {
+            Expiration = _cachePolicy.Ttl,
+        };
+    }
+    
+    private string BuildCacheKey(GetDepartmentsTopPositionsCommand command)
+    {
+        return $"{_cachePolicy.Prefix}:top_positions";
     }
 }

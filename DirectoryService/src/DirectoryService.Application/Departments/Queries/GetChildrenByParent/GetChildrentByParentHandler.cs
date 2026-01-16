@@ -5,27 +5,24 @@ using DirectoryService.Application.Database;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Departments.GetChildrenByParent;
 using DirectoryService.Domain.Shared;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace DirectoryService.Application.Departments.Queries.GetChildrenByParent;
 
 public class GetChildrentByParentHandler : ICommandHandler<GetChildrenByParentResponse, GetChildrentByParentCommand>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
-    private readonly ICacheService _cacheService;
-    private readonly ILogger<GetChildrentByParentHandler> _logger;
-    private readonly TimeSpan _cacheTtl;
+    private readonly HybridCache _cache;
+    private readonly IDepartmentsCachePolicy _cachePolicy;
 
     public GetChildrentByParentHandler(
         IDbConnectionFactory dbConnectionFactory,
-        ICacheService cacheService,
-        ILogger<GetChildrentByParentHandler> logger,
-        IDepartmentsCachePolicy cachePolicy)
+        IDepartmentsCachePolicy cachePolicy,
+        HybridCache cache)
     {
         _dbConnectionFactory = dbConnectionFactory;
-        _cacheService = cacheService;
-        _logger = logger;
-        _cacheTtl = cachePolicy.Ttl;
+        _cachePolicy = cachePolicy;
+        _cache = cache;
     }
 
     public async Task<Result<GetChildrenByParentResponse, Errors>> Handle(
@@ -34,63 +31,63 @@ public class GetChildrentByParentHandler : ICommandHandler<GetChildrenByParentRe
     {
         string cacheKey = BuildCacheKey(command);
 
-        // 1️⃣ Try get from cache
-        var response = await _cacheService.GetAsync<GetChildrenByParentResponse>(cacheKey, cancellationToken);
+        var response = await _cache.GetOrCreateAsync(
+            key: cacheKey,
+            factory: async ct => await LoadFromDatabaseAsync(command, ct),
+            options: CreateCacheOptions(),
+            cancellationToken: cancellationToken);
 
-        // 2️⃣ DB query
-        if (response is null)
-        {
-            string sql =
-                """
-                 WITH roots AS (SELECT * FROM public.departments d WHERE d.id = @DepartmentId ORDER BY created_at)
-                 SELECT
-                     *,
-                     (EXISTS (SELECT 1 FROM public.departments WHERE parent_id = roots.id OFFSET @Offset LIMIT @Limit)) AS has_more_children
-                 FROM roots
+        return Result.Success<GetChildrenByParentResponse, Errors>(response);
+    }
 
-                 UNION ALL
+    private async Task<GetChildrenByParentResponse> LoadFromDatabaseAsync(
+        GetChildrentByParentCommand command,
+        CancellationToken cancellationToken)
+    {
+        const string sql =
+            """
+            WITH roots AS (SELECT * FROM public.departments d WHERE d.id = @DepartmentId ORDER BY created_at)
+            SELECT
+                *,
+                (EXISTS (SELECT 1 FROM public.departments WHERE parent_id = roots.id OFFSET @Offset LIMIT @Limit)) AS has_more_children
+            FROM roots
 
-                 SELECT
-                     c.*,
-                     (EXISTS (SELECT 1 FROM public.departments WHERE parent_id = c.id)) AS has_more_children
-                 FROM roots r CROSS JOIN LATERAL (
-                     SELECT * FROM public.departments d WHERE d.parent_id = r.id
-                     ORDER BY created_at
-                     LIMIT @Limit
-                 ) c
-                 """;
+            UNION ALL
 
-            using var connection = await _dbConnectionFactory.CreateConnectionAsync(cancellationToken);
+            SELECT
+                c.*,
+                (EXISTS (SELECT 1 FROM public.departments WHERE parent_id = c.id)) AS has_more_children
+            FROM roots r CROSS JOIN LATERAL (
+                SELECT * FROM public.departments d WHERE d.parent_id = r.id
+                ORDER BY created_at
+                LIMIT @Limit
+            ) c
+            """;
 
-            var result = await connection.QueryAsync<DepartmentInfoDto>(sql, new
+        using var connection = await _dbConnectionFactory.CreateConnectionAsync(cancellationToken);
+
+        var result = await connection.QueryAsync<DepartmentInfoDto>(
+            sql,
+            new
             {
                 DepartmentId = command.DepartmentId,
                 Offset = (command.Request.Page - 1) * command.Request.Size,
                 Limit = command.Request.Size,
             });
 
-            response = new GetChildrenByParentResponse(result.ToList());
-
-            // 3️⃣ Save to cache
-            await _cacheService.SetAsync(
-                cacheKey,
-                response,
-                _cacheTtl,
-                cancellationToken);
-
-            _logger.LogInformation($"Cache hit: {cacheKey}");
-        }
-
-        return Result.Success<GetChildrenByParentResponse, Errors>(response);
+        return new GetChildrenByParentResponse(result.ToList());
     }
 
-    private static string BuildCacheKey(GetChildrentByParentCommand command)
+    private HybridCacheEntryOptions CreateCacheOptions()
     {
-        string mainPart = "departments:children_by_parent";
-        string parentPart = $"parent={command.DepartmentId}";
-        string pagePart = $"page={command.Request.Page}";
-        string sizePart = $"size={command.Request.Size}";
+        return new HybridCacheEntryOptions
+        {
+            Expiration = _cachePolicy.Ttl,
+        };
+    }
 
-        return $"{mainPart}:{parentPart}:{pagePart}:{sizePart}";
+    private string BuildCacheKey(GetChildrentByParentCommand command)
+    {
+        return $"{_cachePolicy.Prefix}:children:{command.DepartmentId}:{command.Request.Page}:{command.Request.Size}";
     }
 }
