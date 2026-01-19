@@ -9,9 +9,9 @@ public class DepartmentsCachePolicy : IDepartmentsCachePolicy
 
     public string Prefix { get; }
 
-    public DepartmentsCachePolicy(IOptions<DepartmentsCacheOptions> options, string prefix)
+    public DepartmentsCachePolicy(IOptions<DepartmentsCacheOptions> options)
     {
-        Prefix = prefix;
+        Prefix = options.Value.Prefix;
         Ttl = TimeSpan.FromMinutes(options.Value.TtlMinutes);
     }
 }

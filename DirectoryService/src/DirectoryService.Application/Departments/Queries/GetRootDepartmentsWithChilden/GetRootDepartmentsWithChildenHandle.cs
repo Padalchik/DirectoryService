@@ -2,6 +2,7 @@
 using Dapper;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
+using DirectoryService.Application.Shared;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Departments.GetRootDepartmentsWithChilden;
 using DirectoryService.Domain.Shared;
@@ -14,17 +15,14 @@ public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepart
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
     private readonly HybridCache _cache;
-    private readonly ILogger<GetRootDepartmentsWithChildenHandle> _logger;
     private readonly IDepartmentsCachePolicy _cachePolicy;
 
     public GetRootDepartmentsWithChildenHandle(
         IDbConnectionFactory dbConnectionFactory,
-        ILogger<GetRootDepartmentsWithChildenHandle> logger,
         IDepartmentsCachePolicy cachePolicy,
         HybridCache cache)
     {
         _dbConnectionFactory = dbConnectionFactory;
-        _logger = logger;
         _cachePolicy = cachePolicy;
         _cache = cache;
     }
@@ -32,7 +30,11 @@ public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepart
     public async Task<Result<GetRootDepartmentsWithChildenResponse, Errors>> Handle(
         GetRootDepartmentsWithChildenCommand command, CancellationToken cancellationToken)
     {
-        string cacheKey = BuildCacheKey(command);
+        string cacheKey = CacheKeyBuilder.Build(
+            $"{_cachePolicy.Prefix}:root_departments_with_children",
+            ("page", command.Request.Page),
+            ("size", command.Request.Size),
+            ("prefetch", command.Request.Prefetch));
 
         var response = await _cache.GetOrCreateAsync(
             key: cacheKey,
@@ -89,15 +91,5 @@ public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepart
         {
             Expiration = _cachePolicy.Ttl,
         };
-    }
-
-    private string BuildCacheKey(GetRootDepartmentsWithChildenCommand command)
-    {
-        string mainPart = $"{_cachePolicy.Prefix}:root_departments_with_children";
-        string pagePart = $"page={command.Request.Page}";
-        string sizePart = $"size={command.Request.Size}";
-        string prefetchPart = $"prefetch={command.Request.Prefetch}";
-
-        return $"{mainPart}:{pagePart}:{sizePart}:{prefetchPart}";
     }
 }

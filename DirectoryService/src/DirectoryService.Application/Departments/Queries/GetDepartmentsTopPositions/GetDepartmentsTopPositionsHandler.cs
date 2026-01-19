@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
+using DirectoryService.Application.Shared;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
@@ -14,18 +15,15 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmen
 {
     private readonly IReadDbConext _readDbConext;
     private readonly HybridCache _cache;
-    private readonly ILogger<GetDepartmentsTopPositionsHandler> _logger;
     private readonly IDepartmentsCachePolicy _cachePolicy;
 
     public GetDepartmentsTopPositionsHandler(
         IReadDbConext readDbConext,
         IDepartmentsCachePolicy cachePolicy,
-        ILogger<GetDepartmentsTopPositionsHandler> logger,
         HybridCache cache)
     {
         _readDbConext = readDbConext;
         _cachePolicy = cachePolicy;
-        _logger = logger;
         _cache = cache;
     }
 
@@ -33,7 +31,7 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmen
         GetDepartmentsTopPositionsCommand command,
         CancellationToken cancellationToken)
     {
-        string cacheKey = BuildCacheKey(command);
+        string cacheKey = CacheKeyBuilder.Build($"{_cachePolicy.Prefix}:top_positions");
 
         var response = await _cache.GetOrCreateAsync(
             key: cacheKey,
@@ -79,10 +77,5 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmen
         {
             Expiration = _cachePolicy.Ttl,
         };
-    }
-    
-    private string BuildCacheKey(GetDepartmentsTopPositionsCommand command)
-    {
-        return $"{_cachePolicy.Prefix}:top_positions";
     }
 }

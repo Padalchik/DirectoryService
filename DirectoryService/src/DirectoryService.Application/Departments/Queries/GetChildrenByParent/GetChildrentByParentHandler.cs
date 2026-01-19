@@ -2,6 +2,7 @@
 using Dapper;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
+using DirectoryService.Application.Shared;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Departments.GetChildrenByParent;
 using DirectoryService.Domain.Shared;
@@ -29,7 +30,11 @@ public class GetChildrentByParentHandler : ICommandHandler<GetChildrenByParentRe
         GetChildrentByParentCommand command,
         CancellationToken cancellationToken)
     {
-        string cacheKey = BuildCacheKey(command);
+        string cacheKey = CacheKeyBuilder.Build(
+            $"{_cachePolicy.Prefix}:children",
+            ("parentId", command.DepartmentId),
+            ("page", command.Request.Page),
+            ("size", command.Request.Size));
 
         var response = await _cache.GetOrCreateAsync(
             key: cacheKey,
@@ -84,10 +89,5 @@ public class GetChildrentByParentHandler : ICommandHandler<GetChildrenByParentRe
         {
             Expiration = _cachePolicy.Ttl,
         };
-    }
-
-    private string BuildCacheKey(GetChildrentByParentCommand command)
-    {
-        return $"{_cachePolicy.Prefix}:children:{command.DepartmentId}:{command.Request.Page}:{command.Request.Size}";
     }
 }
