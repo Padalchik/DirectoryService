@@ -1,23 +1,48 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
+using DirectoryService.Application.Shared;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Departments.Queries.GetDepartmentsTopPositions;
 
 public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsCommand>
 {
     private readonly IReadDbConext _readDbConext;
+    private readonly HybridCache _cache;
+    private readonly IDepartmentsCachePolicy _cachePolicy;
 
-    public GetDepartmentsTopPositionsHandler(IReadDbConext readDbConext)
+    public GetDepartmentsTopPositionsHandler(
+        IReadDbConext readDbConext,
+        IDepartmentsCachePolicy cachePolicy,
+        HybridCache cache)
     {
         _readDbConext = readDbConext;
+        _cachePolicy = cachePolicy;
+        _cache = cache;
     }
 
     public async Task<Result<GetTopDepartmentsResponse, Errors>> Handle(
+        GetDepartmentsTopPositionsCommand command,
+        CancellationToken cancellationToken)
+    {
+        string cacheKey = CacheKeyBuilder.Build($"{_cachePolicy.Prefix}:top_positions");
+
+        var response = await _cache.GetOrCreateAsync(
+            key: cacheKey,
+            factory: async ct => await LoadFromDatabaseAsync(command, ct),
+            options: CreateCacheOptions(),
+            cancellationToken: cancellationToken);
+
+        return Result.Success<GetTopDepartmentsResponse, Errors>(response);
+    }
+
+    private async Task<GetTopDepartmentsResponse> LoadFromDatabaseAsync(
         GetDepartmentsTopPositionsCommand command,
         CancellationToken cancellationToken)
     {
@@ -43,8 +68,14 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmen
             })
             .ToListAsync(cancellationToken);
 
-        var getTopDepartmentsResponse = new GetTopDepartmentsResponse(departments);
+        return new GetTopDepartmentsResponse(departments);
+    }
 
-        return getTopDepartmentsResponse;
+    private HybridCacheEntryOptions CreateCacheOptions()
+    {
+        return new HybridCacheEntryOptions
+        {
+            Expiration = _cachePolicy.Ttl,
+        };
     }
 }
