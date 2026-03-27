@@ -71,11 +71,11 @@ public class DepartmentsController : ControllerBase
     [HttpGet]
     [Route("/api/departments/top-positions")]
     public async Task<Envelope> GetDepartmentsTopPositions(
-        [FromServices] ICommandHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsCommand> handler,
+        [FromServices] IQueryHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsQuery> handler,
         CancellationToken cancellationToken)
     {
-        var command = new GetDepartmentsTopPositionsCommand();
-        var getDepartmentsTopPositionsResult = await handler.Handle(command, cancellationToken);
+        var query = new GetDepartmentsTopPositionsQuery();
+        var getDepartmentsTopPositionsResult = await handler.Handle(query, cancellationToken);
 
         if (getDepartmentsTopPositionsResult.IsFailure)
             return Envelope.Error(getDepartmentsTopPositionsResult.Error);
@@ -87,11 +87,11 @@ public class DepartmentsController : ControllerBase
     [Route("/api/departments/roots")]
     public async Task<Envelope> GetRootDepartmentsWithChilden(
         [FromQuery] GetRootDepartmentsWithChildenRequest request,
-        [FromServices] ICommandHandler<GetRootDepartmentsWithChildenResponse, GetRootDepartmentsWithChildenCommand> handler,
+        [FromServices] IQueryHandler<GetRootDepartmentsWithChildenResponse, GetRootDepartmentsWithChildenQuery> handler,
         CancellationToken cancellationToken)
     {
-        var command = new GetRootDepartmentsWithChildenCommand(request);
-        var getRootDepartmentsWithChildenResult = await handler.Handle(command, cancellationToken);
+        var query = new GetRootDepartmentsWithChildenQuery(request);
+        var getRootDepartmentsWithChildenResult = await handler.Handle(query, cancellationToken);
 
         if (getRootDepartmentsWithChildenResult.IsFailure)
             return Envelope.Error(getRootDepartmentsWithChildenResult.Error);
@@ -104,11 +104,11 @@ public class DepartmentsController : ControllerBase
     public async Task<Envelope> GetChildrenByParent(
         [FromRoute] Guid departmentId,
         [FromQuery] GetChildrenByParentRequest request,
-        [FromServices] ICommandHandler<GetChildrenByParentResponse, GetChildrentByParentCommand> handler,
+        [FromServices] IQueryHandler<GetChildrenByParentResponse, GetChildrentByParentQuery> handler,
         CancellationToken cancellationToken)
     {
-        var command = new GetChildrentByParentCommand(departmentId, request);
-        var getChildrentByParentResult = await handler.Handle(command, cancellationToken);
+        var query = new GetChildrentByParentQuery(departmentId, request);
+        var getChildrentByParentResult = await handler.Handle(query, cancellationToken);
 
         if (getChildrentByParentResult.IsFailure)
             return Envelope.Error(getChildrentByParentResult.Error);

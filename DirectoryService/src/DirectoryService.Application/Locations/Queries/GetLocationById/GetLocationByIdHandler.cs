@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DirectoryService.Application.Locations.Queries.GetLocationById;
 
-public class GetLocationByIdHandler : ICommandHandler<GetLocationResponse, GetLocationByIdCommand>
+public class GetLocationByIdHandler : IQueryHandler<GetLocationResponse, GetLocationByIdQuery>
 {
     private readonly IReadDbConext _readDbConext;
 
@@ -17,12 +17,12 @@ public class GetLocationByIdHandler : ICommandHandler<GetLocationResponse, GetLo
         _readDbConext = readDbConext;
     }
 
-    public async Task<Result<GetLocationResponse, Errors>> Handle(GetLocationByIdCommand command, CancellationToken cancellationToken)
+    public async Task<Result<GetLocationResponse, Errors>> Handle(GetLocationByIdQuery query, CancellationToken cancellationToken)
     {
         var locationDto = await _readDbConext.LocationsRead
             .Include(l => l.Departments)
             .AsNoTracking()
-            .Where(l => l.Id == command.LocationId)
+            .Where(l => l.Id == query.LocationId)
             .Select(l => new GetLocationResponse
             {
                 Id = l.Id,
@@ -56,7 +56,7 @@ public class GetLocationByIdHandler : ICommandHandler<GetLocationResponse, GetLo
             .FirstOrDefaultAsync(cancellationToken);
 
         if (locationDto == null)
-            return GeneralErrors.NotFound(command.LocationId).ToErrors();
+            return GeneralErrors.NotFound(query.LocationId).ToErrors();
 
         return locationDto;
     }

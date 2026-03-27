@@ -2,4 +2,4 @@
 
 namespace DirectoryService.Application.Departments.Queries.GetDepartmentsTopPositions;
 
-public record GetDepartmentsTopPositionsCommand() : ICommand;
+public record GetDepartmentsTopPositionsQuery() : IQuery;

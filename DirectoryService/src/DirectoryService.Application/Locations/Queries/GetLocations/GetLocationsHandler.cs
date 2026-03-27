@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DirectoryService.Application.Locations.Queries.GetLocations;
 
-public class GetLocationsHandler : ICommandHandler<GetLocationsResponse, GetLocationsCommand>
+public class GetLocationsHandler : IQueryHandler<GetLocationsResponse, GetLocationsQuery>
 {
     private readonly IReadDbConext _readDbConext;
 
@@ -18,32 +18,32 @@ public class GetLocationsHandler : ICommandHandler<GetLocationsResponse, GetLoca
     }
 
     public async Task<Result<GetLocationsResponse, Errors>> Handle(
-        GetLocationsCommand command,
+        GetLocationsQuery query,
         CancellationToken cancellationToken)
     {
         var locationsQuery = _readDbConext.LocationsRead;
 
-        if (command.Request.DepartmentIds != null)
+        if (query.Request.DepartmentIds != null)
         {
             locationsQuery = locationsQuery
                 .Include(d => d.Departments)
-                .Where(l => l.Departments.Any(dl => command.Request.DepartmentIds.Contains(dl.DepartmentId)))
+                .Where(l => l.Departments.Any(dl => query.Request.DepartmentIds.Contains(dl.DepartmentId)))
                 .AsNoTracking();
         }
 
-        if (!string.IsNullOrEmpty(command.Request.Search))
-            locationsQuery = locationsQuery.Where(l => l.Name.Name.ToLower().Contains(command.Request.Search.ToLower()));
+        if (!string.IsNullOrEmpty(query.Request.Search))
+            locationsQuery = locationsQuery.Where(l => l.Name.Name.ToLower().Contains(query.Request.Search.ToLower()));
 
-        if (command.Request.IsActive != null)
-            locationsQuery = locationsQuery.Where(l => l.IsActive == command.Request.IsActive);
+        if (query.Request.IsActive != null)
+            locationsQuery = locationsQuery.Where(l => l.IsActive == query.Request.IsActive);
 
         long totalCount = await locationsQuery.LongCountAsync(cancellationToken);
 
         locationsQuery = locationsQuery
             .OrderBy(l => l.Name.Name)
             .ThenBy(l => l.CreatedAt.ToUniversalTime())
-            .Skip((command.Request.Page - 1) * command.Request.PageSize)
-            .Take(command.Request.PageSize);
+            .Skip((query.Request.Page - 1) * query.Request.PageSize)
+            .Take(query.Request.PageSize);
 
         var locations = await locationsQuery.Select(l => new GetLocationResponse
         {

@@ -2,4 +2,4 @@
 
 namespace DirectoryService.Application.Locations.Queries.GetLocationById;
 
-public record GetLocationByIdCommand(Guid LocationId) : ICommand;
+public record GetLocationByIdQuery(Guid LocationId) : IQuery;
