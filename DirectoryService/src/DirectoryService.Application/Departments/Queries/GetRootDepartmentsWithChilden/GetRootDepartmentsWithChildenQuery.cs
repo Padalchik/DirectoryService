@@ -1,7 +1,6 @@
 ﻿using DirectoryService.Application.Abstractions;
-using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Departments.GetRootDepartmentsWithChilden;
 
 namespace DirectoryService.Application.Departments.Queries.GetRootDepartmentsWithChilden;
 
-public record GetRootDepartmentsWithChildenCommand(GetRootDepartmentsWithChildenRequest Request) : ICommand;
+public record GetRootDepartmentsWithChildenQuery(GetRootDepartmentsWithChildenRequest Request) : IQuery;

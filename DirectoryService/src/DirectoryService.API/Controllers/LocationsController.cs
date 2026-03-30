@@ -1,7 +1,7 @@
 ﻿using DirectoryService.API.Response;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
-using DirectoryService.Application.Locations.CreateLocation;
+using DirectoryService.Application.Locations.Commands.CreateLocation;
 using DirectoryService.Application.Locations.Queries.GetLocationById;
 using DirectoryService.Application.Locations.Queries.GetLocations;
 using DirectoryService.Contracts.Locations;
@@ -31,12 +31,12 @@ public class LocationsController : ControllerBase
 
     [HttpGet("{locationId}")]
     public async Task<Envelope> GetById(
-        [FromServices] ICommandHandler<GetLocationResponse, GetLocationByIdCommand> handler,
+        [FromServices] IQueryHandler<GetLocationResponse, GetLocationByIdQuery> handler,
         [FromRoute] Guid locationId,
         CancellationToken cancellationToken)
     {
-        var command = new GetLocationByIdCommand(locationId);
-        var getLocationByIdResult = await handler.Handle(command, cancellationToken);
+        var query = new GetLocationByIdQuery(locationId);
+        var getLocationByIdResult = await handler.Handle(query, cancellationToken);
 
         if (getLocationByIdResult.IsFailure)
             return Envelope.Error(getLocationByIdResult.Error);
@@ -47,11 +47,11 @@ public class LocationsController : ControllerBase
     [HttpGet]
     public async Task<Envelope> Get(
         [FromQuery] GetLocationsRequest getLocationsRequest,
-        [FromServices] ICommandHandler<GetLocationsResponse, GetLocationsCommand> handler,
+        [FromServices] IQueryHandler<GetLocationsResponse, GetLocationsQuery> handler,
         CancellationToken cancellationToken)
     {
-        var command = new GetLocationsCommand(getLocationsRequest);
-        var getLocationsResult = await handler.Handle(command, cancellationToken);
+        var query = new GetLocationsQuery(getLocationsRequest);
+        var getLocationsResult = await handler.Handle(query, cancellationToken);
 
         if (getLocationsResult.IsFailure)
             return Envelope.Error(getLocationsResult.Error);

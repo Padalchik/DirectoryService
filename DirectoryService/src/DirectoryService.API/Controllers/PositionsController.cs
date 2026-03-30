@@ -1,6 +1,7 @@
 ﻿using DirectoryService.API.Response;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Positions;
+using DirectoryService.Application.Positions.Commands;
 using DirectoryService.Contracts.Positions;
 using DirectoryService.Domain.Positions;
 using Microsoft.AspNetCore.Mvc;

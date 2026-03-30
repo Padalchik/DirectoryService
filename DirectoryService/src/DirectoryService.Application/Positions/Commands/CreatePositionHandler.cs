@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Shared.Validation;
 using DirectoryService.Domain.DepartmentPositions;
@@ -8,7 +7,7 @@ using DirectoryService.Domain.Shared;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 
-namespace DirectoryService.Application.Positions;
+namespace DirectoryService.Application.Positions.Commands;
 
 public class CreatePositionHandler : ICommandHandler<Position, CreatePositionCommand>
 {

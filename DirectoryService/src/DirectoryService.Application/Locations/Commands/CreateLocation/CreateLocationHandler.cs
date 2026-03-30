@@ -7,7 +7,7 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Address = DirectoryService.Domain.Locations.Address;
 
-namespace DirectoryService.Application.Locations.CreateLocation;
+namespace DirectoryService.Application.Locations.Commands.CreateLocation;
 
 public class CreateLocationHandler : ICommandHandler<Location, CreateLocationCommand>
 {

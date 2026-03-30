@@ -7,11 +7,10 @@ using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Departments.GetRootDepartmentsWithChilden;
 using DirectoryService.Domain.Shared;
 using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Departments.Queries.GetRootDepartmentsWithChilden;
 
-public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepartmentsWithChildenResponse, GetRootDepartmentsWithChildenCommand>
+public class GetRootDepartmentsWithChildenHandle : IQueryHandler<GetRootDepartmentsWithChildenResponse, GetRootDepartmentsWithChildenQuery>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
     private readonly HybridCache _cache;
@@ -28,17 +27,17 @@ public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepart
     }
 
     public async Task<Result<GetRootDepartmentsWithChildenResponse, Errors>> Handle(
-        GetRootDepartmentsWithChildenCommand command, CancellationToken cancellationToken)
+        GetRootDepartmentsWithChildenQuery query, CancellationToken cancellationToken)
     {
         string cacheKey = CacheKeyBuilder.Build(
             $"{_cachePolicy.Prefix}:root_departments_with_children",
-            ("page", command.Request.Page),
-            ("size", command.Request.Size),
-            ("prefetch", command.Request.Prefetch));
+            ("page", query.Request.Page),
+            ("size", query.Request.Size),
+            ("prefetch", query.Request.Prefetch));
 
         var response = await _cache.GetOrCreateAsync(
             key: cacheKey,
-            factory: async ct => await LoadFromDatabaseAsync(command, ct),
+            factory: async ct => await LoadFromDatabaseAsync(query, ct),
             options: CreateCacheOptions(),
             cancellationToken: cancellationToken);
 
@@ -46,7 +45,7 @@ public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepart
     }
 
     private async Task<GetRootDepartmentsWithChildenResponse> LoadFromDatabaseAsync(
-        GetRootDepartmentsWithChildenCommand command,
+        GetRootDepartmentsWithChildenQuery query,
         CancellationToken cancellationToken)
     {
         string sql =
@@ -77,9 +76,9 @@ public class GetRootDepartmentsWithChildenHandle : ICommandHandler<GetRootDepart
 
         var result = await connection.QueryAsync<DepartmentInfoDto>(sql, new
         {
-            Offset = (command.Request.Page - 1) * command.Request.Size,
-            RootLimit = command.Request.Size,
-            ChildLimit = command.Request.Prefetch,
+            Offset = (query.Request.Page - 1) * query.Request.Size,
+            RootLimit = query.Request.Size,
+            ChildLimit = query.Request.Prefetch,
         });
 
         return new GetRootDepartmentsWithChildenResponse(result.ToList());

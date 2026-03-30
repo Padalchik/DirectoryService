@@ -10,7 +10,7 @@ using Microsoft.Extensions.Caching.Hybrid;
 
 namespace DirectoryService.Application.Departments.Queries.GetChildrenByParent;
 
-public class GetChildrentByParentHandler : ICommandHandler<GetChildrenByParentResponse, GetChildrentByParentCommand>
+public class GetChildrentByParentHandler : IQueryHandler<GetChildrenByParentResponse, GetChildrentByParentQuery>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
     private readonly HybridCache _cache;
@@ -27,18 +27,18 @@ public class GetChildrentByParentHandler : ICommandHandler<GetChildrenByParentRe
     }
 
     public async Task<Result<GetChildrenByParentResponse, Errors>> Handle(
-        GetChildrentByParentCommand command,
+        GetChildrentByParentQuery query,
         CancellationToken cancellationToken)
     {
         string cacheKey = CacheKeyBuilder.Build(
             $"{_cachePolicy.Prefix}:children",
-            ("parentId", command.DepartmentId),
-            ("page", command.Request.Page),
-            ("size", command.Request.Size));
+            ("parentId", query.DepartmentId),
+            ("page", query.Request.Page),
+            ("size", query.Request.Size));
 
         var response = await _cache.GetOrCreateAsync(
             key: cacheKey,
-            factory: async ct => await LoadFromDatabaseAsync(command, ct),
+            factory: async ct => await LoadFromDatabaseAsync(query, ct),
             options: CreateCacheOptions(),
             cancellationToken: cancellationToken);
 
@@ -46,7 +46,7 @@ public class GetChildrentByParentHandler : ICommandHandler<GetChildrenByParentRe
     }
 
     private async Task<GetChildrenByParentResponse> LoadFromDatabaseAsync(
-        GetChildrentByParentCommand command,
+        GetChildrentByParentQuery query,
         CancellationToken cancellationToken)
     {
         const string sql =
@@ -75,9 +75,9 @@ public class GetChildrentByParentHandler : ICommandHandler<GetChildrenByParentRe
             sql,
             new
             {
-                DepartmentId = command.DepartmentId,
-                Offset = (command.Request.Page - 1) * command.Request.Size,
-                Limit = command.Request.Size,
+                DepartmentId = query.DepartmentId,
+                Offset = (query.Request.Page - 1) * query.Request.Size,
+                Limit = query.Request.Size,
             });
 
         return new GetChildrenByParentResponse(result.ToList());

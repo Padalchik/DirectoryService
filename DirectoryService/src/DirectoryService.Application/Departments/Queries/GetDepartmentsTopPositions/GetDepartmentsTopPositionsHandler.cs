@@ -7,11 +7,10 @@ using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Departments.Queries.GetDepartmentsTopPositions;
 
-public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsCommand>
+public class GetDepartmentsTopPositionsHandler : IQueryHandler<GetTopDepartmentsResponse, GetDepartmentsTopPositionsQuery>
 {
     private readonly IReadDbConext _readDbConext;
     private readonly HybridCache _cache;
@@ -28,14 +27,14 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmen
     }
 
     public async Task<Result<GetTopDepartmentsResponse, Errors>> Handle(
-        GetDepartmentsTopPositionsCommand command,
+        GetDepartmentsTopPositionsQuery query,
         CancellationToken cancellationToken)
     {
         string cacheKey = CacheKeyBuilder.Build($"{_cachePolicy.Prefix}:top_positions");
 
         var response = await _cache.GetOrCreateAsync(
             key: cacheKey,
-            factory: async ct => await LoadFromDatabaseAsync(command, ct),
+            factory: async ct => await LoadFromDatabaseAsync(query, ct),
             options: CreateCacheOptions(),
             cancellationToken: cancellationToken);
 
@@ -43,7 +42,7 @@ public class GetDepartmentsTopPositionsHandler : ICommandHandler<GetTopDepartmen
     }
 
     private async Task<GetTopDepartmentsResponse> LoadFromDatabaseAsync(
-        GetDepartmentsTopPositionsCommand command,
+        GetDepartmentsTopPositionsQuery query,
         CancellationToken cancellationToken)
     {
         IQueryable<Department> departmentsQuery = _readDbConext.DepartmentsRead
