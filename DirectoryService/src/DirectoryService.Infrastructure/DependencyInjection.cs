@@ -6,6 +6,7 @@ using DirectoryService.Application.Positions;
 using DirectoryService.Infrastructure.BackgroundServices;
 using DirectoryService.Infrastructure.Cache;
 using DirectoryService.Infrastructure.Database;
+using DirectoryService.Infrastructure.Messaging;
 using DirectoryService.Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,6 +63,22 @@ public static class DependencyInjection
             configuration.GetSection("Cache:Departments"));
 
         services.AddSingleton<IDepartmentsCachePolicy, DepartmentsCachePolicy>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddRabbitMq(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<RabbitMqOptions>()
+            .Bind(configuration.GetSection(RabbitMqOptions.SECTION_NAME))
+            .Validate(options => !string.IsNullOrWhiteSpace(options.Host), "RabbitMq:Host is required")
+            .Validate(options => options.Port is > 0 and <= 65535, "RabbitMq:Port is invalid")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.UserName), "RabbitMq:UserName is required")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.Password), "RabbitMq:Password is required")
+            .ValidateOnStart();
+
+        services.AddSingleton<IDepartmentCreatedIntegrationEventPublisher,
+            RabbitMqDepartmentCreatedIntegrationEventPublisher>();
 
         return services;
     }

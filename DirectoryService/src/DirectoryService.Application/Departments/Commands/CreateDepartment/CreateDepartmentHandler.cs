@@ -2,6 +2,7 @@
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Application.Shared.Validation;
+using DirectoryService.Contracts.Departments.Events;
 using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Shared;
@@ -19,6 +20,7 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
     private readonly IValidator<CreateDepartmentCommand> _validator;
     private readonly HybridCache _cache;
     private readonly IDepartmentsCachePolicy _cachePolicy;
+    private readonly IDepartmentCreatedIntegrationEventPublisher _eventPublisher;
 
     public CreateDepartmentHandler(
         IDepartmentsRepository departmentsRepository,
@@ -26,12 +28,14 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
         ILogger<CreateDepartmentHandler> logger,
         IValidator<CreateDepartmentCommand> validator,
         IDepartmentsCachePolicy cachePolicy,
+        IDepartmentCreatedIntegrationEventPublisher eventPublisher,
         HybridCache cache)
     {
         _departmentsRepository = departmentsRepository;
         _locationsRepository = locationsRepository;
         _validator = validator;
         _cachePolicy = cachePolicy;
+        _eventPublisher = eventPublisher;
         _cache = cache;
         _logger = logger;
     }
@@ -87,6 +91,14 @@ public class CreateDepartmentHandler : ICommandHandler<Department, CreateDepartm
 
         // ИНВАЛИДАЦИЯ КЭША
         await _cache.RemoveByTagAsync(_cachePolicy.Prefix, cancellationToken);
+
+        var integrationEvent = new DepartmentCreatedIntegrationEvent(
+            Guid.NewGuid(),
+            department.Id,
+            department.Name.Name,
+            department.CreatedAt);
+
+        await _eventPublisher.PublishAsync(integrationEvent, cancellationToken);
 
         _logger.LogInformation("Department created with id {departmentId}", department.Id);
 

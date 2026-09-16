@@ -1,5 +1,7 @@
 ﻿using System.Data.Common;
 using DirectoryService.API;
+using DirectoryService.Application.Abstractions;
+using DirectoryService.Contracts.Departments.Events;
 using DirectoryService.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -29,7 +31,9 @@ public class DirectoryServiceTestWebFactory : WebApplicationFactory<Program>, IA
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<ApplicationDBContext>();
+            services.RemoveAll<IDepartmentCreatedIntegrationEventPublisher>();
             services.AddScoped<ApplicationDBContext>(_ => new ApplicationDBContext(_dbContainer.GetConnectionString()));
+            services.AddSingleton<IDepartmentCreatedIntegrationEventPublisher, NoOpDepartmentCreatedEventPublisher>();
         });
     }
 
@@ -72,5 +76,12 @@ public class DirectoryServiceTestWebFactory : WebApplicationFactory<Program>, IA
                 DbAdapter = DbAdapter.Postgres,
                 SchemasToInclude = ["public"],
             });
+    }
+
+    private sealed class NoOpDepartmentCreatedEventPublisher : IDepartmentCreatedIntegrationEventPublisher
+    {
+        public Task PublishAsync(
+            DepartmentCreatedIntegrationEvent integrationEvent,
+            CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

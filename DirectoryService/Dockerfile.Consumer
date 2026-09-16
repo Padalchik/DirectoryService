@@ -1,0 +1,22 @@
+FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
+WORKDIR /app
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY ./Directory.Build.props ./
+COPY ./src/DirectoryService.Consumer/DirectoryService.Consumer.csproj ./DirectoryService.Consumer/
+COPY ./src/DirectoryService.Contracts/DirectoryService.Contracts.csproj ./DirectoryService.Contracts/
+
+RUN dotnet restore ./DirectoryService.Consumer/DirectoryService.Consumer.csproj
+
+COPY ./src/DirectoryService.Consumer ./DirectoryService.Consumer
+COPY ./src/DirectoryService.Contracts ./DirectoryService.Contracts
+WORKDIR /src/DirectoryService.Consumer
+
+RUN dotnet publish -c Release -o /out --no-restore
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /out .
+ENTRYPOINT ["dotnet", "DirectoryService.Consumer.dll"]

@@ -30,21 +30,69 @@
       - "6379:6379"
     restart: always
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-directory}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-directory}
+    ports:
+      - "${RABBITMQ_AMQP_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
   api:
     container_name: directory-service
     build:
       context: .
       dockerfile: ./Dockerfile   # если Dockerfile в корне решения
     depends_on:
-      - postgres
-      - seq
+      postgres:
+        condition: service_started
+      seq:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DataBase: "Host=postgres;Port=5432;Database=directory_service;Username=postgres;Password=postgres"
+      ConnectionStrings__Redis: "redis:6379"
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: ${RABBITMQ_USER:-directory}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-directory}
+      RabbitMq__VirtualHost: "/"
     ports:
       - "8080:8080"
     restart: always
 
+  consumer:
+    container_name: directory-service-consumer
+    build:
+      context: .
+      dockerfile: ./Dockerfile.Consumer
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: ${RABBITMQ_USER:-directory}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-directory}
+      RabbitMq__VirtualHost: "/"
+    restart: always
+
 volumes:
   postgres-data:
+  rabbitmq-data:

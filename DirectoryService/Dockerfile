@@ -6,10 +6,12 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # копируем csproj файлы (важно для Clean Architecture)
+COPY ./Directory.Build.props ./
 COPY ./src/DirectoryService.API/DirectoryService.API.csproj ./DirectoryService.API/
 COPY ./src/DirectoryService.Application/DirectoryService.Application.csproj ./DirectoryService.Application/
 COPY ./src/DirectoryService.Infrastructure/DirectoryService.Infrastructure.csproj ./DirectoryService.Infrastructure/
 COPY ./src/DirectoryService.Domain/DirectoryService.Domain.csproj ./DirectoryService.Domain/
+COPY ./src/DirectoryService.Contracts/DirectoryService.Contracts.csproj ./DirectoryService.Contracts/
 
 RUN dotnet restore ./DirectoryService.API/DirectoryService.API.csproj
 

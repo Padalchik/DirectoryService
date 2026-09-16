@@ -11,7 +11,8 @@ builder.Services
     .AddApplication()
     .AddInfrastructure()
     .AddRedisCache(builder.Configuration)
-    .AddDepartmentsCacheOptions(builder.Configuration);
+    .AddDepartmentsCacheOptions(builder.Configuration)
+    .AddRabbitMq(builder.Configuration);
 
 var app = builder.Build();
 app.MigrateDatabase();
