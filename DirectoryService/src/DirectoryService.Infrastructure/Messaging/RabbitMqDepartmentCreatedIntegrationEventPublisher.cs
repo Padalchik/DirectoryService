@@ -41,8 +41,8 @@ public sealed class RabbitMqDepartmentCreatedIntegrationEventPublisher :
             };
 
             await _channel!.BasicPublishAsync(
-                DirectoryEventsTopology.EXCHANGE_NAME,
-                DirectoryEventsTopology.DEPARTMENT_CREATED_ROUTING_KEY,
+                DirectoryEventsTopology.ExchangeName,
+                DirectoryEventsTopology.DepartmentCreatedRoutingKey,
                 mandatory: false,
                 properties,
                 body,
@@ -109,7 +109,7 @@ public sealed class RabbitMqDepartmentCreatedIntegrationEventPublisher :
         _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
         await _channel.ExchangeDeclareAsync(
-            DirectoryEventsTopology.EXCHANGE_NAME,
+            DirectoryEventsTopology.ExchangeName,
             ExchangeType.Topic,
             durable: true,
             autoDelete: false,
